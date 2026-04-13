@@ -1,0 +1,745 @@
+{
+    "ROSTemplateFormatVersion": "2015-09-01",
+    "Description": "ALB + SAE (Single App with Versions) + WAF architecture deployment by CDK",
+    "Parameters": {
+      "PackageUrl": {
+        "Default": "https://my-java-app-bucket.oss-us-east-1.aliyuncs.com/releases/hello-world-1.0-SNAPSHOT.jar",
+        "Type": "String",
+        "Description": "JAR Package OSS URL"
+      },
+      "CertificateId": {
+        "Default": "24280745",
+        "Type": "String",
+        "Description": "ALB HTTPS 绑定用：填数字证书管理服务里证书列表的「证书ID」（多为纯数字）；勿填订阅实例 ID（cas_dv-cn-…）。若仍报找不到，再按文档尝试「证书ID-地域」全局格式。"
+      },
+      "AppName": {
+        "Default": "apple-api-prod",
+        "Type": "String",
+        "Description": "SAE Application Name"
+      },
+      "InstanceSpec": {
+        "Default": "cpu:0.5,memory:1024",
+        "Type": "String",
+        "Description": "Instance Specification"
+      },
+      "SubDomainName": {
+        "Default": "api-prod",
+        "Type": "String",
+        "Description": "Sub-domain / RR (host record)"
+      },
+      "VSwitchCidrBlock": {
+        "Default": "10.0.1.0/24",
+        "Type": "String",
+        "Description": "VSwitch CIDR Block"
+      },
+      "VpcCidrBlock": {
+        "Default": "10.0.0.0/16",
+        "Type": "String",
+        "Description": "VPC CIDR Block"
+      },
+      "ZoneId": {
+        "Default": "us-east-1a",
+        "Type": "String",
+        "Description": "Zone ID"
+      },
+      "MinInstanceAmount": {
+        "Default": "1",
+        "Type": "String",
+        "Description": "Minimum Instance Count"
+      },
+      "MaxInstanceAmount": {
+        "Default": "10",
+        "Type": "String",
+        "Description": "Maximum Instance Count"
+      },
+      "HealthCheckPath": {
+        "Default": "/api/health",
+        "Type": "String",
+        "Description": "Health Check Path"
+      },
+      "MainDomainName": {
+        "Default": "apple-app.cn",
+        "Type": "String",
+        "Description": "Hosted root domain (already added in Aliyun DNS)"
+      },
+      "NamespaceId": {
+        "Default": "us-east-1",
+        "Type": "String",
+        "Description": "SAE namespace logical ID only; stack region is prefixed automatically"
+      }
+    },
+    "Outputs": {
+      "SaeNamespaceId": {
+        "Description": "SAE Namespace ID (Region:LogicalId)",
+        "Value": {
+          "Fn::GetAtt": [
+            "SaeNamespace",
+            "NamespaceId"
+          ]
+        }
+      },
+      "AlbAddress": {
+        "Description": "ALB public address",
+        "Value": {
+          "Fn::GetAtt": [
+            "AlbInstance",
+            "DNSName"
+          ]
+        }
+      },
+      "AlbId": {
+        "Description": "ALB instance ID",
+        "Value": {
+          "Ref": "AlbInstance"
+        }
+      },
+      "SaeApp": {
+        "Description": "SAE Application Name",
+        "Value": {
+          "Ref": "SaeApplication"
+        }
+      },
+      "VpcId": {
+        "Description": "VPC ID",
+        "Value": {
+          "Ref": "VPC"
+        }
+      },
+      "SaeIngressId": {
+        "Description": "SAE Ingress ID",
+        "Value": {
+          "Ref": "SaeIngress"
+        }
+      }
+    },
+    "Resources": {
+      "AlbCanaryRule": {
+        "Type": "ALIYUN::ALB::Rule",
+        "Properties": {
+          "Priority": 1,
+          "RuleActions": [
+            {
+              "ForwardGroupConfig": {
+                "ServerGroupTuples": [
+                  {
+                    "ServerGroupId": {
+                      "Ref": "AlbServerGroup"
+                    }
+                  }
+                ]
+              },
+              "Type": "ForwardGroup",
+              "Order": 1
+            }
+          ],
+          "ListenerId": {
+            "Ref": "AlbListener"
+          },
+          "RuleConditions": [
+            {
+              "Type": "Path",
+              "PathConfig": {
+                "Values": [
+                  "/*"
+                ]
+              }
+            }
+          ],
+          "RuleName": "canary-traffic-rule"
+        }
+      },
+      "SaeNamespace": {
+        "Type": "ALIYUN::SAE::Namespace",
+        "Properties": {
+          "NamespaceName": "apple-api-stack-prod-ns",
+          "NamespaceId": {
+            "Fn::Sub": "${ALIYUN::Region}:${NamespaceId}"
+          },
+          "NamespaceDescription": "Namespace for SAE applications"
+        }
+      },
+      "SaeIngress": {
+        "Type": "ALIYUN::SAE::Ingress",
+        "Properties": {
+          "CertIds": [
+            {
+              "Ref": "CertificateId"
+            }
+          ],
+          "Description": "apple-api-prod-ingress",
+          "Rules": [
+            {
+              "Path": "/*",
+              "Domain": "api-prod.apple-app.cn",
+              "BackendProtocol": "http",
+              "ContainerPort": 8080,
+              "AppId": {
+                "Ref": "SaeApplication"
+              }
+            }
+          ],
+          "ListenerPort": 443,
+          "DefaultRule": {
+            "BackendProtocol": "http",
+            "ContainerPort": 8080,
+            "AppId": {
+              "Ref": "SaeApplication"
+            }
+          },
+          "ListenerProtocol": "HTTPS",
+          "LoadBalanceType": "alb",
+          "SlbId": {
+            "Ref": "AlbInstance"
+          },
+          "NamespaceId": {
+            "Fn::GetAtt": [
+              "SaeNamespace",
+              "NamespaceId"
+            ]
+          }
+        }
+      },
+      "SecurityGroupRuleIngressHttp": {
+        "Type": "ALIYUN::ECS::SecurityGroupIngress",
+        "Properties": {
+          "Description": "apple-api-stack-prod-allow-80",
+          "PortRange": "80/80",
+          "SecurityGroupId": {
+            "Ref": "SecurityGroup"
+          },
+          "Priority": 1,
+          "SourceCidrIp": "0.0.0.0/0",
+          "IpProtocol": "tcp"
+        },
+        "DependsOn": [
+          "SecurityGroup"
+        ]
+      },
+      "SaeApplication": {
+        "Type": "ALIYUN::SAE::Application",
+        "Properties": {
+          "PackageUrl": "https://my-java-app-bucket.oss-us-east-1.aliyuncs.com/releases/hello-world-1.0-SNAPSHOT.jar",
+          "VpcId": {
+            "Ref": "VPC"
+          },
+          "Replicas": 1,
+          "Envs": "[{\"name\":\"JAVA_OPTS\",\"value\":\"-Dserver.port=8080\"}]",
+          "AppName": {
+            "Ref": "AppName"
+          },
+          "NamespaceId": {
+            "Fn::GetAtt": [
+              "SaeNamespace",
+              "NamespaceId"
+            ]
+          },
+          "Deploy": true,
+          "Readiness": "{\"httpGet\":{\"path\":\"/api/health\",\"port\":8080,\"scheme\":\"HTTP\"},\"initialDelaySeconds\":10,\"timeoutSeconds\":5}",
+          "PackageType": "FatJar",
+          "VSwitchId": {
+            "Ref": "VSwitch"
+          },
+          "Memory": 1024,
+          "Timezone": "Asia/Shanghai",
+          "SecurityGroupId": {
+            "Ref": "SecurityGroup"
+          },
+          "Cpu": 500
+        }
+      },
+      "SecurityGroupRuleIngressHttps": {
+        "Type": "ALIYUN::ECS::SecurityGroupIngress",
+        "Properties": {
+          "Description": "apple-api-stack-prod-allow-443",
+          "PortRange": "443/443",
+          "SecurityGroupId": {
+            "Ref": "SecurityGroup"
+          },
+          "Priority": 1,
+          "SourceCidrIp": "0.0.0.0/0",
+          "IpProtocol": "tcp"
+        },
+        "DependsOn": [
+          "SecurityGroup"
+        ]
+      },
+      "SecurityGroup": {
+        "Type": "ALIYUN::ECS::SecurityGroup",
+        "Properties": {
+          "VpcId": {
+            "Ref": "VPC"
+          },
+          "Description": "Security group for SAE instances",
+          "SecurityGroupName": "apple-api-stack-prod-sg"
+        },
+        "DependsOn": [
+          "VPC"
+        ]
+      },
+      "VSwitchB": {
+        "Type": "ALIYUN::ECS::VSwitch",
+        "Properties": {
+          "VSwitchName": "apple-api-stack-prod-b-vswitch",
+          "VpcId": {
+            "Ref": "VPC"
+          },
+          "CidrBlock": "10.0.2.0/24",
+          "Description": "VSwitch for SAE instances and ALB",
+          "ZoneId": "us-east-1b"
+        }
+      },
+      "AlbServerGroup": {
+        "Type": "ALIYUN::ALB::ServerGroup",
+        "Properties": {
+          "Protocol": "HTTP",
+          "VpcId": {
+            "Ref": "VPC"
+          },
+          "ServerGroupName": "sae-server-group",
+          "StickySessionConfig": {
+            "StickySessionEnabled": false
+          },
+          "HealthCheckConfig": {
+            "HealthCheckEnabled": false
+          }
+        }
+      },
+      "AlbListener": {
+        "Type": "ALIYUN::ALB::Listener",
+        "Properties": {
+          "DefaultActions": [
+            {
+              "ForwardGroupConfig": {
+                "ServerGroupTuples": [
+                  {
+                    "ServerGroupId": {
+                      "Ref": "AlbServerGroup"
+                    }
+                  }
+                ]
+              },
+              "Type": "ForwardGroup"
+            }
+          ],
+          "ListenerProtocol": "HTTP",
+          "ListenerPort": 80,
+          "LoadBalancerId": {
+            "Ref": "AlbInstance"
+          }
+        }
+      },
+      "AlbInstance": {
+        "Type": "ALIYUN::ALB::LoadBalancer",
+        "Properties": {
+          "AddressType": "Internet",
+          "ZoneMappings": [
+            {
+              "VSwitchId": {
+                "Ref": "VSwitch"
+              },
+              "ZoneId": "us-east-1a"
+            },
+            {
+              "VSwitchId": {
+                "Ref": "VSwitchB"
+              },
+              "ZoneId": "us-east-1b"
+            }
+          ],
+          "LoadBalancerEdition": "Standard",
+          "LoadBalancerBillingConfig": {
+            "PayType": "PostPay"
+          },
+          "VpcId": {
+            "Ref": "VPC"
+          },
+          "AddressAllocatedMode": "Fixed",
+          "LoadBalancerName": "apple-api-stack-prod-alb"
+        }
+      },
+      "VPC": {
+        "Type": "ALIYUN::ECS::VPC",
+        "Properties": {
+          "CidrBlock": "10.0.0.0/16",
+          "VpcName": "apple-api-stack-prod-vpc",
+          "EnableIpv6": false,
+          "Description": "VPC created by CDK for ALB + SAE + WAF architecture"
+        }
+      },
+      "SecurityGroupRuleIngressApp": {
+        "Type": "ALIYUN::ECS::SecurityGroupIngress",
+        "Properties": {
+          "Description": "apple-api-stack-prod-allow-8080",
+          "PortRange": "8080/8080",
+          "SecurityGroupId": {
+            "Ref": "SecurityGroup"
+          },
+          "Priority": 1,
+          "SourceCidrIp": "0.0.0.0/0",
+          "IpProtocol": "tcp"
+        },
+        "DependsOn": [
+          "SecurityGroup"
+        ]
+      },
+      "VSwitch": {
+        "Type": "ALIYUN::ECS::VSwitch",
+        "Properties": {
+          "VSwitchName": "apple-api-stack-prod-vswitch",
+          "VpcId": {
+            "Ref": "VPC"
+          },
+          "CidrBlock": "10.0.1.0/24",
+          "Description": "VSwitch for SAE instances and ALB",
+          "ZoneId": "us-east-1a"
+        }
+      },
+      "ScalingRule": {
+        "Type": "ALIYUN::SAE::ApplicationScalingRule",
+        "Properties": {
+          "ScalingRuleMetric": {
+            "MinReplicas": 1,
+            "Metrics": [
+              {
+                "MetricTargetAverageUtilization": 80,
+                "MetricType": "CPU"
+              }
+            ],
+            "ScaleUpRules": {
+              "Disabled": false,
+              "Step": "1",
+              "StabilizationWindowSeconds": 60
+            },
+            "MaxReplicas": 10,
+            "ScaleDownRules": {
+              "Disabled": false,
+              "Step": "1",
+              "StabilizationWindowSeconds": 300
+            }
+          },
+          "ScalingRuleName": "apple-api-prod-scaling",
+          "ScalingRuleEnable": true,
+          "ScalingRuleType": "metric",
+          "AppId": {
+            "Ref": "SaeApplication"
+          },
+          "MinReadyInstances": 0
+        }
+      }
+    },
+    "Metadata": {
+      "ALIYUN::ROS::Composer": {
+        "5ebf7a4d": {
+          "Line": "0:1:0:#c8c8c8:0",
+          "Edge": [
+            "f8c3c5e6",
+            "deff48a5"
+          ],
+          "Parent": "ac3c9477"
+        },
+        "ae09e8e8": {
+          "Res": [
+            "VSwitch"
+          ],
+          "Parent": "ac3c9477",
+          "Rect": [
+            200,
+            110,
+            653,
+            403,
+            4,
+            0
+          ]
+        },
+        "ac3c9477": {
+          "Res": [
+            "VPC"
+          ],
+          "Parent": "eefb5ea8",
+          "Rect": [
+            837,
+            516,
+            90,
+            200,
+            3,
+            0
+          ]
+        },
+        "b4e49e36": {
+          "Line": "0:1:0:#c8c8c8:0",
+          "Edge": [
+            "cf2a2650",
+            "f8c3c5e6"
+          ],
+          "Parent": "eefb5ea8"
+        },
+        "f8c3c5e6": {
+          "Res": [
+            "AlbInstance",
+            "AlbListener"
+          ],
+          "Ref": [
+            "AlbListener"
+          ],
+          "Parent": "19dd8ba2",
+          "Rect": [
+            40,
+            40,
+            205,
+            426,
+            35,
+            0
+          ]
+        },
+        "08f23d80": {
+          "Res": [
+            "AlbCanaryRule"
+          ],
+          "Parent": "eefb5ea8",
+          "Rect": [
+            40,
+            40,
+            583,
+            119,
+            35,
+            0
+          ]
+        },
+        "e76902ea": {
+          "Line": "0:1:0:#c8c8c8:0",
+          "Edge": [
+            "08f23d80",
+            "deff48a5"
+          ],
+          "Parent": "eefb5ea8"
+        },
+        "14ede138": {
+          "Rect": [
+            946,
+            931,
+            30,
+            39,
+            1,
+            0
+          ],
+          "ResT": "Composer::ROSParameter::AlibabaCloud"
+        },
+        "bc3acc86": {
+          "Res": [
+            "SecurityGroup"
+          ],
+          "Parent": "ac3c9477",
+          "Rect": [
+            160,
+            120,
+            120,
+            580,
+            17,
+            0
+          ]
+        },
+        "aab71a7d": {
+          "Res": [
+            "SaeApplication"
+          ],
+          "Parent": "ae09e8e8",
+          "Rect": [
+            40,
+            40,
+            683,
+            443,
+            35,
+            0
+          ]
+        },
+        "e509f9fe": {
+          "Line": "0:1:0:#c8c8c8:0",
+          "Edge": [
+            "aab71a7d",
+            "c91e5271"
+          ],
+          "Parent": "eefb5ea8"
+        },
+        "d0de6c2b": {
+          "Line": "0:1:0:#c8c8c8:0",
+          "Edge": [
+            "cf2a2650",
+            "c91e5271"
+          ],
+          "Parent": "eefb5ea8"
+        },
+        "11f656fa": {
+          "Res": [
+            "ScalingRule"
+          ],
+          "Parent": "eefb5ea8",
+          "Rect": [
+            40,
+            40,
+            682,
+            870,
+            35,
+            0
+          ]
+        },
+        "eefb5ea8": {
+          "Parent": "14ede138",
+          "Rect": [
+            888,
+            866,
+            60,
+            79,
+            2,
+            0
+          ],
+          "ResT": "Composer::ROSParameter::Region"
+        },
+        "deff48a5": {
+          "Res": [
+            "AlbServerGroup"
+          ],
+          "Parent": "ac3c9477",
+          "Rect": [
+            40,
+            40,
+            280,
+            281,
+            17,
+            0
+          ]
+        },
+        "7dade00e": {
+          "Res": [
+            "SecurityGroupRuleIngressHttp"
+          ],
+          "Parent": "eefb5ea8",
+          "Rect": [
+            40,
+            40,
+            230,
+            847,
+            35,
+            0
+          ]
+        },
+        "431cea00": {
+          "Line": "0:1:0:#c8c8c8:0",
+          "Edge": [
+            "d31748a8",
+            "bc3acc86"
+          ],
+          "Parent": "eefb5ea8"
+        },
+        "d31748a8": {
+          "Res": [
+            "SecurityGroupRuleIngressApp"
+          ],
+          "Parent": "eefb5ea8",
+          "Rect": [
+            40,
+            40,
+            120,
+            743,
+            35,
+            0
+          ]
+        },
+        "9ad9e9ee": {
+          "Line": "0:1:0:#c8c8c8:0",
+          "Edge": [
+            "7dade00e",
+            "bc3acc86"
+          ],
+          "Parent": "eefb5ea8"
+        },
+        "19dd8ba2": {
+          "Res": [
+            "VSwitchB"
+          ],
+          "Parent": "ac3c9477",
+          "Rect": [
+            200,
+            110,
+            175,
+            386,
+            4,
+            0
+          ]
+        },
+        "4d19a4ea": {
+          "Line": "0:1:0:#c8c8c8:0",
+          "Edge": [
+            "11f656fa",
+            "aab71a7d"
+          ],
+          "Parent": "eefb5ea8"
+        },
+        "cf2a2650": {
+          "Res": [
+            "SaeIngress"
+          ],
+          "Parent": "eefb5ea8",
+          "Rect": [
+            40,
+            40,
+            517,
+            830,
+            35,
+            0
+          ]
+        },
+        "7c696c05": {
+          "Line": "0:1:0:#c8c8c8:0",
+          "Edge": [
+            "cf2a2650",
+            "aab71a7d"
+          ],
+          "Parent": "eefb5ea8"
+        },
+        "9dfcea72": {
+          "Line": "0:1:0:#c8c8c8:0",
+          "Edge": [
+            "aab71a7d",
+            "bc3acc86"
+          ],
+          "Parent": "ac3c9477"
+        },
+        "1d098707": {
+          "Line": "0:1:0:#c8c8c8:0",
+          "Edge": [
+            "7f4cfd9c",
+            "bc3acc86"
+          ],
+          "Parent": "eefb5ea8"
+        },
+        "7f4cfd9c": {
+          "Res": [
+            "SecurityGroupRuleIngressHttps"
+          ],
+          "Parent": "eefb5ea8",
+          "Rect": [
+            40,
+            40,
+            100,
+            847,
+            35,
+            0
+          ]
+        },
+        "c91e5271": {
+          "Res": [
+            "SaeNamespace"
+          ],
+          "Parent": "eefb5ea8",
+          "Rect": [
+            40,
+            40,
+            375,
+            830,
+            35,
+            0
+          ]
+        }
+      }
+    }
+  }
