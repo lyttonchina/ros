@@ -1,0 +1,21 @@
+{
+  "template-file-path": "templates/apple-app-prod.json",
+  "parameters": {
+    "PackageUrl": "https://my-java-app-bucket.oss-us-east-1.aliyuncs.com/releases/hello-world-1.0-SNAPSHOT.jar",
+    "CertificateId": "24280745",
+    "AppName": "apple-api-prod",
+    "InstanceSpec": "cpu:0.5,memory:1024",
+    "SubDomainName": "api-prod",
+    "VSwitchCidrBlock": "10.0.1.0/24",
+    "VpcCidrBlock": "10.0.0.0/16",
+    "ZoneId": "us-east-1a",
+    "MinInstanceAmount": "1",
+    "MaxInstanceAmount": "10",
+    "HealthCheckPath": "/api/health",
+    "MainDomainName": "apple-app.cn",
+    "NamespaceId": "us-east-1"
+  },
+  "tags": {
+    "env": "prod"
+  }
+}
