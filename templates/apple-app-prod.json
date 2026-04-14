@@ -181,13 +181,11 @@
           "HealthCheckCodes": [
             "200"
           ],
-          "HealthCheckPath": {
-            "Ref": "HealthCheckPath"
-          },
+          "HealthCheckPath": "/api/health",
           "HealthyThreshold": 3,
           "UnhealthyThreshold": 3,
-          "HealthCheckTimeoutSeconds": 5,
-          "Interval": 2
+          "HealthCheckTimeout": 5,
+          "HealthCheckInterval": 2
         }
       }
     },
