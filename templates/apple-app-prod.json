@@ -128,7 +128,7 @@
         "VSwitchId": {
           "Ref": "VSwitch"
         },
-        "Memory": 512,
+        "Memory": 1024,
         "Timezone": "Asia/Shanghai",
         "SecurityGroupId": {
           "Ref": "SecurityGroup"
@@ -346,7 +346,7 @@
       "Description": "SAE Application Name"
     },
     "InstanceSpec": {
-      "Default": "cpu:0.2,memory:512",
+      "Default": "cpu:0.5,memory:1024",
       "Type": "String",
       "Description": "Instance Specification"
     },
