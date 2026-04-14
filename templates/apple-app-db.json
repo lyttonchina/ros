@@ -90,7 +90,7 @@
         "EngineVersion": "7.0",
         "Period": 1,
         "ZoneId": "us-east-1a",
-        "InstanceClass": "redis.master.small.default",
+        "InstanceClass": "redis.logic.sharding.1db.0repo.0standard.1default.default",
         "VpcId": {
           "Ref": "Vpc"
         },
