@@ -133,7 +133,7 @@
         "SecurityGroupId": {
           "Ref": "SecurityGroup"
         },
-        "Cpu": 200
+        "Cpu": 500
       }
     },
     "SecurityGroupRuleIngressHttps": {
