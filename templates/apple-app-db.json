@@ -17,8 +17,23 @@
           "Ref": "Vpc"
         },
         "CidrBlock": "192.168.1.0/24",
-        "Description": "VSwitch for RDS and Redis",
+        "Description": "VSwitch for RDS",
         "ZoneId": "us-east-1a"
+      },
+      "DependsOn": [
+        "Vpc"
+      ]
+    },
+    "VSwitchForRedis": {
+      "Type": "ALIYUN::ECS::VSwitch",
+      "Properties": {
+        "VSwitchName": "apple-app-db-vswitch-redis",
+        "VpcId": {
+          "Ref": "Vpc"
+        },
+        "CidrBlock": "192.168.2.0/24",
+        "Description": "VSwitch for Redis",
+        "ZoneId": "us-east-1b"
       },
       "DependsOn": [
         "Vpc"
@@ -114,25 +129,20 @@
       "Properties": {
         "EngineVersion": "5.0",
         "Period": 1,
-        "ZoneId": {
-          "Fn::GetAtt": [
-            "VSwitch",
-            "ZoneId"
-          ]
-        },
+        "ZoneId": "us-east-1b",
         "InstanceClass": "redis.master.small.default",
         "VpcId": {
           "Ref": "Vpc"
         },
         "VSwitchId": {
-          "Ref": "VSwitch"
+          "Ref": "VSwitchForRedis"
         },
         "SecurityGroupId": {
           "Ref": "SecurityGroup"
         }
       },
       "DependsOn": [
-        "VSwitch"
+        "VSwitchForRedis"
       ]
     }
   },
