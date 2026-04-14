@@ -70,18 +70,13 @@
       ]
     },
     "DBInstance": {
-      "Type": "ALIYUN::RDS::DBInstance",
+      "Type": "ALIYUN::RDS::PrepayDBInstance",
       "Properties": {
         "DBInstanceStorage": 20,
-        "SecurityIpList": [
-          "192.168.1.0/24"
-        ],
         "Engine": "MySQL",
         "EngineVersion": "8.0",
         "DBInstanceNetType": "Intranet",
-        "PayType": "Prepaid",
-        "Period": "Month",
-        "UsedTime": 1,
+        "Period": 1,
         "DBInstanceClass": "rds.mysql.t1.small",
         "VSwitchId": {
           "Ref": "VSwitch"
@@ -89,13 +84,9 @@
         "VpcId": {
           "Ref": "Vpc"
         },
-        "DBInstanceDescription": "apple-app-mysql",
-        "SecurityGroupIds": [
-          {
-            "Ref": "SecurityGroup"
-          }
-        ],
-        "RetentionPolicy": "Keep",
+        "SecurityGroupId": {
+          "Ref": "SecurityGroup"
+        },
         "Category": "Basic"
       },
       "DependsOn": [
@@ -119,15 +110,10 @@
       ]
     },
     "RedisInstance": {
-      "Type": "ALIYUN::REDIS::Instance",
+      "Type": "ALIYUN::REDIS::PrepayInstance",
       "Properties": {
-        "SecurityIpList": [
-          "192.168.1.0/24"
-        ],
         "EngineVersion": "5.0",
-        "PayType": "Prepaid",
-        "Period": "Month",
-        "UsedTime": 1,
+        "Period": 1,
         "InstanceClass": "redis.master.small.default",
         "VpcId": {
           "Ref": "Vpc"
@@ -135,7 +121,6 @@
         "VSwitchId": {
           "Ref": "VSwitch"
         },
-        "InstanceDescription": "apple-app-redis",
         "SecurityGroupId": {
           "Ref": "SecurityGroup"
         }
@@ -184,7 +169,7 @@
       "Value": {
         "Fn::GetAtt": [
           "DBInstance",
-          "ConnectionString"
+          "InnerConnectionString"
         ]
       }
     },
@@ -199,7 +184,7 @@
       "Value": {
         "Fn::GetAtt": [
           "RedisInstance",
-          "ConnectionString"
+          "ConnectionDomain"
         ]
       }
     }
