@@ -114,6 +114,12 @@
       "Properties": {
         "EngineVersion": "5.0",
         "Period": 1,
+        "ZoneId": {
+          "Fn::GetAtt": [
+            "VSwitch",
+            "ZoneId"
+          ]
+        },
         "InstanceClass": "redis.master.small.default",
         "VpcId": {
           "Ref": "Vpc"
