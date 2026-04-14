@@ -328,22 +328,6 @@
         "RR": "api-prod",
         "DomainName": "apple-app.cn"
       }
-    },
-    "AlbServerGroupCanary": {
-      "Type": "ALIYUN::ALB::ServerGroup",
-      "Properties": {
-        "Protocol": "HTTP",
-        "VpcId": {
-          "Ref": "VPC"
-        },
-        "ServerGroupName": "sae-server-group-canary",
-        "StickySessionConfig": {
-          "StickySessionEnabled": false
-        },
-        "HealthCheckConfig": {
-          "HealthCheckEnabled": false
-        }
-      }
     }
   },
   "Description": "ALB + SAE (Single App with Versions) + WAF architecture deployment by CDK",
