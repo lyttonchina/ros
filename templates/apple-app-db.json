@@ -33,7 +33,7 @@
         },
         "CidrBlock": "192.168.2.0/24",
         "Description": "VSwitch for Redis",
-        "ZoneId": "us-east-1b"
+        "ZoneId": "us-east-1a"
       },
       "DependsOn": [
         "Vpc"
@@ -84,52 +84,12 @@
         "SecurityGroup"
       ]
     },
-    "DBInstance": {
-      "Type": "ALIYUN::RDS::PrepayDBInstance",
-      "Properties": {
-        "DBInstanceStorage": 20,
-        "Engine": "MySQL",
-        "EngineVersion": "8.0",
-        "DBInstanceNetType": "Intranet",
-        "Period": 1,
-        "DBInstanceClass": "rds.mysql.t1.small",
-        "VSwitchId": {
-          "Ref": "VSwitch"
-        },
-        "VpcId": {
-          "Ref": "Vpc"
-        },
-        "SecurityGroupId": {
-          "Ref": "SecurityGroup"
-        },
-        "Category": "Basic"
-      },
-      "DependsOn": [
-        "VSwitch"
-      ]
-    },
-    "DBAccount": {
-      "Type": "ALIYUN::RDS::Account",
-      "Properties": {
-        "DBInstanceId": {
-          "Ref": "DBInstance"
-        },
-        "AccountName": "apple_admin",
-        "AccountPassword": {
-          "Ref": "DBPassword"
-        },
-        "AccountType": "Normal"
-      },
-      "DependsOn": [
-        "DBInstance"
-      ]
-    },
     "RedisInstance": {
       "Type": "ALIYUN::REDIS::PrepayInstance",
       "Properties": {
-        "EngineVersion": "5.0",
+        "EngineVersion": "7.0",
         "Period": 1,
-        "ZoneId": "us-east-1b",
+        "ZoneId": "us-east-1a",
         "InstanceClass": "redis.master.small.default",
         "VpcId": {
           "Ref": "Vpc"
@@ -147,14 +107,6 @@
     }
   },
   "Description": "Shared RDS MySQL + Redis architecture deployment by ROS",
-  "Parameters": {
-    "DBPassword": {
-      "Default": "AppleDb2024!",
-      "Type": "String",
-      "NoEcho": true,
-      "Description": "MySQL database password"
-    }
-  },
   "Outputs": {
     "VpcId": {
       "Description": "VPC ID",
@@ -172,21 +124,6 @@
       "Description": "Security Group ID",
       "Value": {
         "Ref": "SecurityGroup"
-      }
-    },
-    "DBInstanceId": {
-      "Description": "MySQL DBInstance ID",
-      "Value": {
-        "Ref": "DBInstance"
-      }
-    },
-    "DBInstanceConnectionString": {
-      "Description": "MySQL connection address (Intranet)",
-      "Value": {
-        "Fn::GetAtt": [
-          "DBInstance",
-          "InnerConnectionString"
-        ]
       }
     },
     "RedisInstanceId": {
