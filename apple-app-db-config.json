@@ -1,7 +1,6 @@
 {
   "template-file-path": "templates/apple-app-db.json",
   "parameters": {
-    "DBPassword": "AppleDb2024!"
   },
   "tags": {
     "env": "shared"
