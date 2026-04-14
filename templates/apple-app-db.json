@@ -1,145 +1,279 @@
 {
   "ROSTemplateFormatVersion": "2015-09-01",
-  "Resources": {
-    "Vpc": {
-      "Type": "ALIYUN::ECS::VPC",
-      "Properties": {
-        "VpcName": "apple-app-db-vpc",
-        "CidrBlock": "192.168.0.0/16",
-        "Description": "VPC for shared RDS and Redis"
+  "Parameters": {
+    "Zone": {
+      "Default": "us-east-1a",
+      "AssociationProperty": "ALIYUN::ECS::Instance::ZoneId",
+      "AssociationPropertyMetadata": {
+        "WithAvailableResource": true,
+        "DefaultValueStrategy": "first"
+      },
+      "Type": "String",
+      "Label": {
+        "zh-cn": "交换机可用区",
+        "en": "VSwitch Availability Zone"
       }
     },
+    "RDSDBInstanceDBInstanceClass": {
+      "AssociationPropertyMetadata": {
+        "Category": "${RDSDBInstanceCategory}",
+        "Engine": "${RDSDBInstanceEngine}",
+        "EngineVersion": "${RDSDBInstanceEngineVersion}",
+        "ZoneId": "${RDSDBInstanceZoneId}",
+        "InstanceChargeType": "${RDSDBInstancePayType}",
+        "DBInstanceStorageType": "${RDSDBInstanceDBInstanceStorageType}"
+      },
+      "Description": {
+        "en": "Database instance type. Refer the RDS database instance type reference, such as 'rds.mys2.large', 'rds.mss1.large', 'rds.pg.s1.small' etc"
+      },
+      "MinLength": 1,
+      "Required": true,
+      "Label": {
+        "zh-cn": "实例规格",
+        "en": "DBInstanceClass"
+      },
+      "MaxLength": 64,
+      "AssociationProperty": "ALIYUN::RDS::Instance::InstanceType",
+      "Type": "String"
+    }
+  },
+  "Resources": {
     "VSwitch": {
       "Type": "ALIYUN::ECS::VSwitch",
       "Properties": {
-        "VSwitchName": "apple-app-db-vswitch",
         "VpcId": {
-          "Ref": "Vpc"
+          "Ref": "VPC"
         },
-        "CidrBlock": "192.168.1.0/24",
-        "Description": "VSwitch for RDS",
-        "ZoneId": "us-east-1a"
-      },
-      "DependsOn": [
-        "Vpc"
-      ]
-    },
-    "VSwitchForRedis": {
-      "Type": "ALIYUN::ECS::VSwitch",
-      "Properties": {
-        "VSwitchName": "apple-app-db-vswitch-redis",
-        "VpcId": {
-          "Ref": "Vpc"
-        },
-        "CidrBlock": "192.168.2.0/24",
-        "Description": "VSwitch for Redis",
-        "ZoneId": "us-east-1a"
-      },
-      "DependsOn": [
-        "Vpc"
-      ]
+        "CidrBlock": "10.0.0.0/24",
+        "ZoneId": {
+          "Ref": "Zone"
+        }
+      }
     },
     "SecurityGroup": {
       "Type": "ALIYUN::ECS::SecurityGroup",
       "Properties": {
+        "SecurityGroupIngress": [
+          {
+            "Policy": "accept",
+            "PortRange": "80/80",
+            "Priority": 1,
+            "SourceCidrIp": "0.0.0.0/0",
+            "IpProtocol": "tcp"
+          },
+          {
+            "Policy": "accept",
+            "PortRange": "443/443",
+            "Priority": 1,
+            "SourceCidrIp": "0.0.0.0/0",
+            "IpProtocol": "tcp"
+          },
+          {
+            "Policy": "accept",
+            "PortRange": "22/22",
+            "Priority": 1,
+            "SourceCidrIp": "0.0.0.0/0",
+            "IpProtocol": "tcp"
+          },
+          {
+            "Policy": "accept",
+            "PortRange": "3389/3389",
+            "Priority": 1,
+            "SourceCidrIp": "0.0.0.0/0",
+            "IpProtocol": "tcp"
+          },
+          {
+            "Policy": "accept",
+            "PortRange": "-1/-1",
+            "Priority": 1,
+            "SourceCidrIp": "0.0.0.0/0",
+            "IpProtocol": "icmp"
+          }
+        ],
         "VpcId": {
-          "Ref": "Vpc"
-        },
-        "Description": "Security group for shared RDS and Redis",
-        "SecurityGroupName": "apple-app-db-sg"
-      },
-      "DependsOn": [
-        "Vpc"
-      ]
-    },
-    "SecurityGroupRuleIngressMysql": {
-      "Type": "ALIYUN::ECS::SecurityGroupIngress",
-      "Properties": {
-        "Description": "apple-app-db-allow-3306",
-        "PortRange": "3306/3306",
-        "SecurityGroupId": {
-          "Ref": "SecurityGroup"
-        },
-        "Priority": 1,
-        "SourceCidrIp": "192.168.1.0/24",
-        "IpProtocol": "tcp"
-      },
-      "DependsOn": [
-        "SecurityGroup"
-      ]
-    },
-    "SecurityGroupRuleIngressRedis": {
-      "Type": "ALIYUN::ECS::SecurityGroupIngress",
-      "Properties": {
-        "Description": "apple-app-db-allow-6379",
-        "PortRange": "6379/6379",
-        "SecurityGroupId": {
-          "Ref": "SecurityGroup"
-        },
-        "Priority": 1,
-        "SourceCidrIp": "192.168.1.0/24",
-        "IpProtocol": "tcp"
-      },
-      "DependsOn": [
-        "SecurityGroup"
-      ]
-    },
-    "RedisInstance": {
-      "Type": "ALIYUN::REDIS::PrepayInstance",
-      "Properties": {
-        "EngineVersion": "7.0",
-        "Period": 1,
-        "ZoneId": "us-east-1a",
-        "InstanceClass": "redis.logic.sharding.1db.0repo.0standard.1default.default",
-        "VpcId": {
-          "Ref": "Vpc"
-        },
-        "VSwitchId": {
-          "Ref": "VSwitchForRedis"
-        },
-        "SecurityGroupId": {
-          "Ref": "SecurityGroup"
+          "Ref": "VPC"
         }
-      },
-      "DependsOn": [
-        "VSwitchForRedis"
-      ]
+      }
+    },
+    "REDISInstance": {
+      "Type": "ALIYUN::REDIS::Instance",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "ChargeType": "PrePaid",
+        "AutoRenewDuration": 1,
+        "Period": 1,
+        "ZoneId": {
+          "Ref": "Zone"
+        },
+        "InstanceClass": "redis.shard.small.y.ee",
+        "PeriodUnit": "Month",
+        "VSwitchId": {
+          "Ref": "VSwitch"
+        },
+        "DeletionForce": false,
+        "EngineVersion": "7.0",
+        "ProductType": "OnECS",
+        "SubscriptionDeletionForce": false
+      }
+    },
+    "VPC": {
+      "Type": "ALIYUN::ECS::VPC",
+      "Properties": {
+        "CidrBlock": "10.0.0.0/8",
+        "EnableIpv6": false
+      }
+    },
+    "RDSDBInstance": {
+      "Type": "ALIYUN::RDS::DBInstance",
+      "Properties": {
+        "StorageAutoScale": "Disable",
+        "Engine": "MySQL",
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "ConnectionStringType": "Inner",
+        "PeriodType": "Month",
+        "SubscriptionDeletionForce": false,
+        "SecurityGroupId": {
+          "Ref": "SecurityGroup"
+        },
+        "SSLSetting": "Disabled",
+        "PayType": "PrePaid",
+        "Category": "Basic",
+        "Period": 1,
+        "DBInstanceNetType": "Internet",
+        "EngineVersion": "8.0",
+        "DBInstanceStorage": 20,
+        "VSwitchId": {
+          "Ref": "VSwitch"
+        },
+        "MasterUserType": "Normal",
+        "DBInstanceStorageType": "cloud_ssd",
+        "DBInstanceClass": "mysql.n1e.small.1",
+        "SecurityIPList": "0.0.0.0/0",
+        "InstanceNetworkType": "VPC",
+        "ZoneId": "us-east-1a"
+      }
     }
   },
-  "Description": "Shared RDS MySQL + Redis architecture deployment by ROS",
-  "Outputs": {
-    "VpcId": {
-      "Description": "VPC ID",
-      "Value": {
-        "Ref": "Vpc"
-      }
-    },
-    "VSwitchId": {
-      "Description": "VSwitch ID",
-      "Value": {
-        "Ref": "VSwitch"
-      }
-    },
-    "SecurityGroupId": {
-      "Description": "Security Group ID",
-      "Value": {
-        "Ref": "SecurityGroup"
-      }
-    },
-    "RedisInstanceId": {
-      "Description": "Redis instance ID",
-      "Value": {
-        "Ref": "RedisInstance"
-      }
-    },
-    "RedisConnectionString": {
-      "Description": "Redis connection address (Intranet)",
-      "Value": {
-        "Fn::GetAtt": [
-          "RedisInstance",
-          "ConnectionDomain"
+  "Metadata": {
+    "ALIYUN::ROS::Composer": {
+      "4a84a8c8": {
+        "Res": [
+          "SecurityGroup"
+        ],
+        "Parent": "fe688e94",
+        "Rect": [
+          160,
+          120,
+          814,
+          465,
+          10,
+          0
         ]
+      },
+      "67cb9fc3": {
+        "Rect": [
+          648,
+          588,
+          522,
+          101,
+          0,
+          0
+        ],
+        "ResT": "Composer::ROSParameter::AlibabaCloud"
+      },
+      "67cb9fc4": {
+        "Parent": "67cb9fc3",
+        "Rect": [
+          612,
+          512,
+          542,
+          161,
+          1,
+          0
+        ],
+        "ResT": "Composer::ROSParameter::Region",
+        "Reg": "us-east-1"
+      },
+      "292c8893": {
+        "Res": [
+          "RDSDBInstance"
+        ],
+        "Parent": "fe688e94",
+        "Rect": [
+          40,
+          40,
+          974,
+          361,
+          35,
+          0
+        ]
+      },
+      "fe688e94": {
+        "Res": [
+          "VPC"
+        ],
+        "Parent": "67cb9fc4",
+        "Rect": [
+          576,
+          436,
+          562,
+          221,
+          2,
+          0
+        ]
+      },
+      "a8e63de3": {
+        "Res": [
+          "VSwitch"
+        ],
+        "Parent": "4ce1a0a6",
+        "Rect": [
+          153,
+          159,
+          602,
+          341,
+          4,
+          0
+        ]
+      },
+      "f99ee7be": {
+        "Res": [
+          "REDISInstance"
+        ],
+        "Parent": "fe688e94",
+        "Rect": [
+          40,
+          40,
+          847,
+          361,
+          35,
+          0
+        ]
+      },
+      "4ce1a0a6": {
+        "Res": [
+          "Zone"
+        ],
+        "Parent": "fe688e94",
+        "Rect": [
+          520,
+          320,
+          582,
+          281,
+          3,
+          0
+        ],
+        "ResT": "Composer::ROSParameter::Zone"
       }
+    },
+    "ALIYUN::ROS::Interface": {
+      "Hidden": [
+        "Zone"
+      ]
     }
   }
 }
