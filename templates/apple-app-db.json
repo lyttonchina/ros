@@ -1,0 +1,194 @@
+{
+  "ROSTemplateFormatVersion": "2015-09-01",
+  "Resources": {
+    "SecurityGroup": {
+      "Type": "ALIYUN::ECS::SecurityGroup",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VpcId"
+        },
+        "Description": "Security group for shared RDS and Redis",
+        "SecurityGroupName": "apple-shared-db-sg"
+      }
+    },
+    "SecurityGroupRuleIngressMysql": {
+      "Type": "ALIYUN::ECS::SecurityGroupIngress",
+      "Properties": {
+        "Description": "apple-shared-db-allow-3306",
+        "PortRange": "3306/3306",
+        "SecurityGroupId": {
+          "Ref": "SecurityGroup"
+        },
+        "Priority": 1,
+        "SourceCidrIp": {
+          "Ref": "AllowedCidr"
+        },
+        "IpProtocol": "tcp"
+      },
+      "DependsOn": [
+        "SecurityGroup"
+      ]
+    },
+    "SecurityGroupRuleIngressRedis": {
+      "Type": "ALIYUN::ECS::SecurityGroupIngress",
+      "Properties": {
+        "Description": "apple-shared-db-allow-6379",
+        "PortRange": "6379/6379",
+        "SecurityGroupId": {
+          "Ref": "SecurityGroup"
+        },
+        "Priority": 1,
+        "SourceCidrIp": {
+          "Ref": "AllowedCidr"
+        },
+        "IpProtocol": "tcp"
+      },
+      "DependsOn": [
+        "SecurityGroup"
+      ]
+    },
+    "DBInstance": {
+      "Type": "ALIYUN::RDS::DBInstance",
+      "Properties": {
+        "DBInstanceStorage": 20,
+        "SecurityIpList": [
+          "192.168.1.0/24"
+        ],
+        "Engine": "MySQL",
+        "EngineVersion": "8.0",
+        "DBInstanceNetType": "Intranet",
+        "PayType": "Prepaid",
+        "Period": "Month",
+        "UsedTime": 1,
+        "DBInstanceClass": "rds.mysql.t1.small",
+        "VSwitchId": {
+          "Ref": "VSwitchId"
+        },
+        "VpcId": {
+          "Ref": "VpcId"
+        },
+        "DBInstanceDescription": "apple-shared-mysql",
+        "SecurityGroupIds": [
+          {
+            "Ref": "SecurityGroup"
+          }
+        ],
+        "RetentionPolicy": "Keep",
+        "Category": "Basic"
+      }
+    },
+    "DBAccount": {
+      "Type": "ALIYUN::RDS::Account",
+      "Properties": {
+        "DBInstanceId": {
+          "Ref": "DBInstance"
+        },
+        "AccountName": "apple_admin",
+        "AccountPassword": {
+          "Ref": "DBPassword"
+        },
+        "AccountType": "Normal"
+      },
+      "DependsOn": [
+        "DBInstance"
+      ]
+    },
+    "RedisInstance": {
+      "Type": "ALIYUN::REDIS::Instance",
+      "Properties": {
+        "SecurityIpList": [
+          "192.168.1.0/24"
+        ],
+        "EngineVersion": "5.0",
+        "PayType": "Prepaid",
+        "Period": "Month",
+        "UsedTime": 1,
+        "InstanceClass": "redis.master.small.default",
+        "VpcId": {
+          "Ref": "VpcId"
+        },
+        "VSwitchId": {
+          "Ref": "VSwitchId"
+        },
+        "InstanceDescription": "apple-shared-redis",
+        "SecurityGroupId": {
+          "Ref": "SecurityGroup"
+        }
+      }
+    }
+  },
+  "Description": "Shared RDS MySQL + Redis architecture deployment by ROS",
+  "Parameters": {
+    "VpcId": {
+      "Default": "vpc-uf6jkrhb0xxxxxxxx",
+      "Type": "String",
+      "Description": "Existing VPC ID for RDS and Redis"
+    },
+    "VSwitchId": {
+      "Default": "vsw-uf65zqxxx0xxxxxxx",
+      "Type": "String",
+      "Description": "Existing VSwitch ID for RDS and Redis"
+    },
+    "DBPassword": {
+      "Default": "AppleDb2024!",
+      "Type": "String",
+      "NoEcho": true,
+      "Description": "MySQL database password (at least 8 characters with uppercase, lowercase, and numbers)"
+    },
+    "AllowedCidr": {
+      "Default": "192.168.1.0/24",
+      "Type": "String",
+      "Description": "Allowed CIDR for security group rules"
+    }
+  },
+  "Outputs": {
+    "VpcId": {
+      "Description": "VPC ID",
+      "Value": {
+        "Ref": "VpcId"
+      }
+    },
+    "VSwitchId": {
+      "Description": "VSwitch ID",
+      "Value": {
+        "Ref": "VSwitchId"
+      }
+    },
+    "SecurityGroupId": {
+      "Description": "Security Group ID",
+      "Value": {
+        "Ref": "SecurityGroup"
+      }
+    },
+    "DBInstanceId": {
+      "Description": "MySQL DBInstance ID",
+      "Value": {
+        "Ref": "DBInstance"
+      }
+    },
+    "DBInstanceConnectionString": {
+      "Description": "MySQL connection address (Intranet)",
+      "Value": {
+        "Fn::GetAtt": [
+          "DBInstance",
+          "ConnectionString"
+        ]
+      }
+    },
+    "RedisInstanceId": {
+      "Description": "Redis instance ID",
+      "Value": {
+        "Ref": "RedisInstance"
+      }
+    },
+    "RedisConnectionString": {
+      "Description": "Redis connection address (Intranet)",
+      "Value": {
+        "Fn::GetAtt": [
+          "RedisInstance",
+          "ConnectionString"
+        ]
+      }
+    }
+  }
+}
