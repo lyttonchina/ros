@@ -179,7 +179,7 @@
         "HealthCheckConfig": {
           "HealthCheckEnabled": true,
           "HealthCheckCodes": [
-            "200"
+            "http_2xx"
           ],
           "HealthCheckPath": "/api/health",
           "HealthyThreshold": 3,
