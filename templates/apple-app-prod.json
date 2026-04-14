@@ -177,7 +177,17 @@
           "StickySessionEnabled": false
         },
         "HealthCheckConfig": {
-          "HealthCheckEnabled": false
+          "HealthCheckEnabled": true,
+          "HealthCheckCodes": [
+            "200"
+          ],
+          "HealthCheckPath": {
+            "Ref": "HealthCheckPath"
+          },
+          "HealthyThreshold": 3,
+          "UnhealthyThreshold": 3,
+          "HealthCheckTimeoutSeconds": 5,
+          "Interval": 2
         }
       }
     },
