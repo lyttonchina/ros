@@ -128,12 +128,12 @@
         "VSwitchId": {
           "Ref": "VSwitch"
         },
-        "Memory": 1024,
+        "Memory": 512,
         "Timezone": "Asia/Shanghai",
         "SecurityGroupId": {
           "Ref": "SecurityGroup"
         },
-        "Cpu": 500
+        "Cpu": 200
       }
     },
     "SecurityGroupRuleIngressHttps": {
@@ -164,18 +164,6 @@
       "DependsOn": [
         "VPC"
       ]
-    },
-    "VSwitchB": {
-      "Type": "ALIYUN::ECS::VSwitch",
-      "Properties": {
-        "VSwitchName": "apple-api-stack-prod-b-vswitch",
-        "VpcId": {
-          "Ref": "VPC"
-        },
-        "CidrBlock": "10.0.2.0/24",
-        "Description": "VSwitch for SAE instances and ALB",
-        "ZoneId": "us-east-1b"
-      }
     },
     "AlbServerGroup": {
       "Type": "ALIYUN::ALB::ServerGroup",
@@ -227,15 +215,9 @@
               "Ref": "VSwitch"
             },
             "ZoneId": "us-east-1a"
-          },
-          {
-            "VSwitchId": {
-              "Ref": "VSwitchB"
-            },
-            "ZoneId": "us-east-1b"
           }
         ],
-        "LoadBalancerEdition": "Standard",
+        "LoadBalancerEdition": "Basic",
         "LoadBalancerBillingConfig": {
           "PayType": "PostPay"
         },
@@ -289,7 +271,7 @@
           "MinReplicas": 1,
           "Metrics": [
             {
-              "MetricTargetAverageUtilization": 80,
+              "MetricTargetAverageUtilization": 85,
               "MetricType": "CPU"
             }
           ],
@@ -298,7 +280,7 @@
             "Step": "1",
             "StabilizationWindowSeconds": 60
           },
-          "MaxReplicas": 10,
+          "MaxReplicas": 3,
           "ScaleDownRules": {
             "Disabled": false,
             "Step": "1",
@@ -364,7 +346,7 @@
       "Description": "SAE Application Name"
     },
     "InstanceSpec": {
-      "Default": "cpu:0.5,memory:1024",
+      "Default": "cpu:0.2,memory:512",
       "Type": "String",
       "Description": "Instance Specification"
     },
