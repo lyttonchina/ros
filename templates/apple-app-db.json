@@ -1,75 +1,6 @@
 {
   "ROSTemplateFormatVersion": "2015-09-01",
   "Resources": {
-    "Vpc": {
-      "Type": "ALIYUN::ECS::VPC",
-      "Properties": {
-        "VpcName": "apple-app-db-vpc",
-        "CidrBlock": "192.168.0.0/16",
-        "Description": "VPC for shared RDS and Redis"
-      }
-    },
-    "VSwitch": {
-      "Type": "ALIYUN::ECS::VSwitch",
-      "Properties": {
-        "VSwitchName": "apple-app-db-vswitch",
-        "VpcId": {
-          "Ref": "Vpc"
-        },
-        "CidrBlock": "192.168.1.0/24",
-        "Description": "VSwitch for RDS and Redis",
-        "ZoneId": "us-east-1a"
-      }
-    },
-    "SecurityGroup": {
-      "Type": "ALIYUN::ECS::SecurityGroup",
-      "Properties": {
-        "VpcId": {
-          "Ref": "Vpc"
-        },
-        "Description": "Security group for shared RDS and Redis",
-        "SecurityGroupName": "apple-app-db-sg"
-      },
-      "DependsOn": [
-        "Vpc"
-      ]
-    },
-    "SecurityGroupRuleIngressMysql": {
-      "Type": "ALIYUN::ECS::SecurityGroupIngress",
-      "Properties": {
-        "Description": "apple-app-db-allow-3306",
-        "PortRange": "3306/3306",
-        "SecurityGroupId": {
-          "Ref": "SecurityGroup"
-        },
-        "Priority": 1,
-        "SourceCidrIp": {
-          "Ref": "AllowedCidr"
-        },
-        "IpProtocol": "tcp"
-      },
-      "DependsOn": [
-        "SecurityGroup"
-      ]
-    },
-    "SecurityGroupRuleIngressRedis": {
-      "Type": "ALIYUN::ECS::SecurityGroupIngress",
-      "Properties": {
-        "Description": "apple-app-db-allow-6379",
-        "PortRange": "6379/6379",
-        "SecurityGroupId": {
-          "Ref": "SecurityGroup"
-        },
-        "Priority": 1,
-        "SourceCidrIp": {
-          "Ref": "AllowedCidr"
-        },
-        "IpProtocol": "tcp"
-      },
-      "DependsOn": [
-        "SecurityGroup"
-      ]
-    },
     "DBInstance": {
       "Type": "ALIYUN::RDS::DBInstance",
       "Properties": {
@@ -85,23 +16,20 @@
         "UsedTime": 1,
         "DBInstanceClass": "rds.mysql.t1.small",
         "VSwitchId": {
-          "Ref": "VSwitch"
+          "Ref": "VSwitchId"
         },
         "VpcId": {
-          "Ref": "Vpc"
+          "Ref": "VpcId"
         },
         "DBInstanceDescription": "apple-app-mysql",
         "SecurityGroupIds": [
           {
-            "Ref": "SecurityGroup"
+            "Ref": "SecurityGroupId"
           }
         ],
         "RetentionPolicy": "Keep",
         "Category": "Basic"
-      },
-      "DependsOn": [
-        "VSwitch"
-      ]
+      }
     },
     "DBAccount": {
       "Type": "ALIYUN::RDS::Account",
@@ -131,52 +59,59 @@
         "UsedTime": 1,
         "InstanceClass": "redis.master.small.default",
         "VpcId": {
-          "Ref": "Vpc"
+          "Ref": "VpcId"
         },
         "VSwitchId": {
-          "Ref": "VSwitch"
+          "Ref": "VSwitchId"
         },
         "InstanceDescription": "apple-app-redis",
         "SecurityGroupId": {
-          "Ref": "SecurityGroup"
+          "Ref": "SecurityGroupId"
         }
-      },
-      "DependsOn": [
-        "VSwitch"
-      ]
+      }
     }
   },
   "Description": "Shared RDS MySQL + Redis architecture deployment by ROS",
   "Parameters": {
+    "VpcId": {
+      "Default": "vpc-uf6jkrhb0xxxxxxxx",
+      "Type": "String",
+      "Description": "Existing VPC ID for RDS and Redis"
+    },
+    "VSwitchId": {
+      "Default": "vsw-uf65zqxxx0xxxxxxx",
+      "Type": "String",
+      "Description": "Existing VSwitch ID for RDS and Redis"
+    },
+    "SecurityGroupId": {
+      "Default": "",
+      "Type": "String",
+      "Description": "Existing Security Group ID (leave empty to create new)"
+    },
     "DBPassword": {
       "Default": "AppleDb2024!",
       "Type": "String",
       "NoEcho": true,
-      "Description": "MySQL database password (at least 8 characters with uppercase, lowercase, and numbers)"
-    },
-    "AllowedCidr": {
-      "Default": "192.168.1.0/24",
-      "Type": "String",
-      "Description": "Allowed CIDR for security group rules"
+      "Description": "MySQL database password"
     }
   },
   "Outputs": {
     "VpcId": {
       "Description": "VPC ID",
       "Value": {
-        "Ref": "Vpc"
+        "Ref": "VpcId"
       }
     },
     "VSwitchId": {
       "Description": "VSwitch ID",
       "Value": {
-        "Ref": "VSwitch"
+        "Ref": "VSwitchId"
       }
     },
     "SecurityGroupId": {
       "Description": "Security Group ID",
       "Value": {
-        "Ref": "SecurityGroup"
+        "Ref": "SecurityGroupId"
       }
     },
     "DBInstanceId": {

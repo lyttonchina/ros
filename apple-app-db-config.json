@@ -1,8 +1,10 @@
 {
   "template-file-path": "templates/apple-app-db.json",
   "parameters": {
-    "DBPassword": "AppleDb2024!",
-    "AllowedCidr": "192.168.1.0/24"
+    "VpcId": "vpc-uf6jkrhb0xxxxxxxx",
+    "VSwitchId": "vsw-uf65zqxxx0xxxxxxx",
+    "SecurityGroupId": "",
+    "DBPassword": "AppleDb2024!"
   },
   "tags": {
     "env": "shared"
