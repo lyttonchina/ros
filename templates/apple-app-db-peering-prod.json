@@ -2,6 +2,10 @@
   "ROSTemplateFormatVersion": "2015-09-01",
   "Description": "VPC Peering connection between apple-app-prod and apple-app-db",
   "Parameters": {
+    "StackName": {
+      "Type": "String",
+      "Default": "apple-app-db-peering-prod"
+    },
     "VpcIdProd": {
       "Type": "String",
       "Description": "VPC ID of apple-app-prod stack (10.0.0.0/16)"
