@@ -74,7 +74,7 @@
       }
     },
     "RouteEntryProdToDb": {
-      "Type": "ALIYUN::VPC::RouteEntry",
+      "Type": "ALIYUN::ECS::Route",
       "Condition": "CreateProdRoute",
       "Properties": {
         "RouteTableId": {
@@ -83,13 +83,14 @@
         "DestinationCidrBlock": {
           "Ref": "VpcCidrDb"
         },
-        "VpcPeerId": {
+        "NextHopType": "VpcPeer",
+        "NextHopId": {
           "Ref": "VpcPeering"
         }
       }
     },
     "RouteEntryDbToProd": {
-      "Type": "ALIYUN::VPC::RouteEntry",
+      "Type": "ALIYUN::ECS::Route",
       "Condition": "CreateDbRoute",
       "Properties": {
         "RouteTableId": {
@@ -98,7 +99,8 @@
         "DestinationCidrBlock": {
           "Ref": "VpcCidrProd"
         },
-        "VpcPeerId": {
+        "NextHopType": "VpcPeer",
+        "NextHopId": {
           "Ref": "VpcPeering"
         }
       }
@@ -109,15 +111,6 @@
       "Description": "VPC Peering connection ID",
       "Value": {
         "Ref": "VpcPeering"
-      }
-    },
-    "PeeringConnectionStatus": {
-      "Description": "VPC Peering connection status",
-      "Value": {
-        "Fn::GetAtt": [
-          "VpcPeering",
-          "Status"
-        ]
       }
     }
   }
