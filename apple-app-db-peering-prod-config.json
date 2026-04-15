@@ -1,12 +1,12 @@
 {
   "template-file-path": "templates/apple-app-db-peering-prod.json",
   "parameters": {
-    "VpcIdProd": "",
-    "VpcIdDb": "",
+    "VpcIdProd": "vpc-0xiq8bvbsm5uetsbs28ch",
+    "VpcIdDb": "vpc-0xiidoexqc8nhyjhtgbhu",
     "VpcCidrProd": "10.0.0.0/16",
     "VpcCidrDb": "192.168.0.0/16",
-    "RouteTableIdProd": "",
-    "RouteTableIdDb": "",
+    "RouteTableIdProd": "vtb-0xi89zq7q7uoyfkrw6rwj",
+    "RouteTableIdDb": "vtb-0xiik236yk8e25mb5ud6c",
     "AllowProdToDb": true,
     "AllowDbToProd": true
   },
