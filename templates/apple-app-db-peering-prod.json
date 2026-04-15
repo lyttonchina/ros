@@ -41,6 +41,11 @@
       "Type": "Boolean",
       "Description": "Add route in db route table to reach prod VPC (required for bidirectional connection)",
       "Default": true
+    },
+    "NextHopType": {
+      "Type": "String",
+      "Description": "Route entry next hop type. Valid values: Instance, HaVip, RouterInterface, NetworkInterface, VpnGateway, IPv6Gateway, NatGateway, Attachment, VpcPeer, Ipv4Gateway, GatewayEndpoint, Ecr, GatewayLoadBalancerEndpoint",
+      "Default": "VpcPeer"
     }
   },
   "Conditions": {
@@ -83,7 +88,9 @@
         "DestinationCidrBlock": {
           "Ref": "VpcCidrDb"
         },
-        "NextHopType": "VpcPeer",
+        "NextHopType": {
+          "Ref": "NextHopType"
+        },
         "NextHopId": {
           "Ref": "VpcPeering"
         }
@@ -99,7 +106,9 @@
         "DestinationCidrBlock": {
           "Ref": "VpcCidrProd"
         },
-        "NextHopType": "VpcPeer",
+        "NextHopType": {
+          "Ref": "NextHopType"
+        },
         "NextHopId": {
           "Ref": "VpcPeering"
         }
