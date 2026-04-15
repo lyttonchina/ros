@@ -223,12 +223,6 @@
               "Ref": "VSwitch"
             },
             "ZoneId": "us-east-1a"
-          },
-          {
-            "VSwitchId": {
-              "Ref": "VSwitchB"
-            },
-            "ZoneId": "us-east-1b"
           }
         ],
         "LoadBalancerEdition": "Basic",
@@ -276,18 +270,6 @@
         "CidrBlock": "10.0.1.0/24",
         "Description": "VSwitch for SAE instances and ALB",
         "ZoneId": "us-east-1a"
-      }
-    },
-    "VSwitchB": {
-      "Type": "ALIYUN::ECS::VSwitch",
-      "Properties": {
-        "VSwitchName": "apple-api-stack-prod-b-vswitch",
-        "VpcId": {
-          "Ref": "VPC"
-        },
-        "CidrBlock": "10.0.2.0/24",
-        "Description": "VSwitch for SAE instances and ALB",
-        "ZoneId": "us-east-1b"
       }
     },
     "ScalingRule": {
