@@ -25,6 +25,9 @@
         "CidrBlock": "192.168.0.0/24",
         "ZoneId": {
           "Ref": "Zone"
+        },
+        "VSwitchName": {
+          "Fn::Sub": "${ALIYUN::StackName}_vswitch"
         }
       }
     },
@@ -68,6 +71,9 @@
             "IpProtocol": "icmp"
           }
         ],
+        "SecurityGroupName": {
+          "Fn::Sub": "${ALIYUN::StackName}_sg"
+        },
         "VpcId": {
           "Ref": "VPC"
         }
@@ -108,7 +114,10 @@
       "Type": "ALIYUN::ECS::VPC",
       "Properties": {
         "CidrBlock": "192.168.0.0/16",
-        "EnableIpv6": false
+        "EnableIpv6": false,
+        "VpcName": {
+          "Fn::Sub": "${ALIYUN::StackName}_vpc"
+        }
       }
     },
     "RDSDBInstance": {

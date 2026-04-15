@@ -159,7 +159,9 @@
           "Ref": "VPC"
         },
         "Description": "Security group for SAE instances",
-        "SecurityGroupName": "apple-api-stack-prod-sg"
+        "SecurityGroupName": {
+          "Fn::Sub": "${ALIYUN::StackName}_sg"
+        }
       },
       "DependsOn": [
         "VPC"
@@ -172,7 +174,9 @@
         "VpcId": {
           "Ref": "VPC"
         },
-        "ServerGroupName": "sae-server-group",
+        "ServerGroupName": {
+          "Fn::Sub": "${ALIYUN::StackName}_server_group"
+        },
         "StickySessionConfig": {
           "StickySessionEnabled": false
         },
@@ -239,13 +243,17 @@
           "Ref": "VPC"
         },
         "AddressAllocatedMode": "Fixed",
-        "LoadBalancerName": "apple-api-stack-prod-alb"
+        "LoadBalancerName": {
+          "Fn::Sub": "${ALIYUN::StackName}_alb"
+        }
       }
     },
     "VPC": {
       "Type": "ALIYUN::ECS::VPC",
       "Properties": {
-        "VpcName": "apple-api-stack-prod-vpc",
+        "VpcName": {
+          "Fn::Sub": "${ALIYUN::StackName}_vpc"
+        },
         "CidrBlock": "10.0.0.0/16",
         "Description": "VPC created by CDK for ALB + SAE + WAF architecture"
       }
@@ -269,7 +277,9 @@
     "VSwitch": {
       "Type": "ALIYUN::ECS::VSwitch",
       "Properties": {
-        "VSwitchName": "apple-api-stack-prod-vswitch",
+        "VSwitchName": {
+          "Fn::Sub": "${ALIYUN::StackName}_vswitch"
+        },
         "VpcId": {
           "Ref": "VPC"
         },
@@ -281,7 +291,9 @@
     "VSwitchB": {
       "Type": "ALIYUN::ECS::VSwitch",
       "Properties": {
-        "VSwitchName": "apple-api-stack-prod-b-vswitch",
+        "VSwitchName": {
+          "Fn::Sub": "${ALIYUN::StackName}_b_vswitch"
+        },
         "VpcId": {
           "Ref": "VPC"
         },
