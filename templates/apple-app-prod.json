@@ -265,7 +265,7 @@
           "Ref": "SecurityGroup"
         },
         "Priority": 1,
-        "SourceCidrIp": "10.0.0.0/16",
+        "SourceCidrIp": "0.0.0.0/0",
         "IpProtocol": "tcp"
       },
       "DependsOn": [
