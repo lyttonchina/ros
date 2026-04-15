@@ -2,7 +2,7 @@
   "ROSTemplateFormatVersion": "2015-09-01",
   "Parameters": {
     "Zone": {
-      "Default": "us-east-1a",
+      "Default": "us-east-1b",
       "AssociationProperty": "ALIYUN::ECS::Instance::ZoneId",
       "AssociationPropertyMetadata": {
         "WithAvailableResource": true,
@@ -101,21 +101,29 @@
         "VpcId": {
           "Ref": "VPC"
         },
+        "NodeType": "single",
         "ChargeType": "PrePaid",
         "AutoRenewDuration": 1,
+        "SecurityGroupId": {
+          "Ref": "SecurityGroup"
+        },
         "Period": 1,
         "ZoneId": {
           "Ref": "Zone"
         },
-        "InstanceClass": "redis.shard.small.y.ee",
+        "InstanceClass": "redis.shard.micro.ce",
         "PeriodUnit": "Month",
         "VSwitchId": {
           "Ref": "VSwitch"
         },
         "DeletionForce": false,
         "EngineVersion": "7.0",
-        "ProductType": "OnECS",
-        "SubscriptionDeletionForce": false
+        "TairConfig": {
+          "StorageType": "essd_pl0"
+        },
+        "ShardCount": 1,
+        "SubscriptionDeletionForce": false,
+        "ProductType": "OnECS"
       }
     },
     "VPC": {
