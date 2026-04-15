@@ -37,38 +37,31 @@
         "SecurityGroupIngress": [
           {
             "Policy": "accept",
-            "PortRange": "80/80",
+            "PortRange": "3306/3306",
             "Priority": 1,
-            "SourceCidrIp": "0.0.0.0/0",
+            "SourceCidrIp": "192.168.0.0/16",
             "IpProtocol": "tcp"
           },
           {
             "Policy": "accept",
-            "PortRange": "443/443",
+            "PortRange": "3306/3306",
             "Priority": 1,
-            "SourceCidrIp": "0.0.0.0/0",
+            "SourceCidrIp": "10.0.0.0/16",
             "IpProtocol": "tcp"
           },
           {
             "Policy": "accept",
-            "PortRange": "22/22",
+            "PortRange": "6379/6379",
             "Priority": 1,
-            "SourceCidrIp": "0.0.0.0/0",
+            "SourceCidrIp": "192.168.0.0/16",
             "IpProtocol": "tcp"
           },
           {
             "Policy": "accept",
-            "PortRange": "3389/3389",
+            "PortRange": "6379/6379",
             "Priority": 1,
-            "SourceCidrIp": "0.0.0.0/0",
+            "SourceCidrIp": "10.0.0.0/16",
             "IpProtocol": "tcp"
-          },
-          {
-            "Policy": "accept",
-            "PortRange": "-1/-1",
-            "Priority": 1,
-            "SourceCidrIp": "0.0.0.0/0",
-            "IpProtocol": "icmp"
           }
         ],
         "VpcId": {
