@@ -61,14 +61,14 @@
   },
   "Resources": {
     "VpcPeering": {
-      "Type": "ALIYUN::VPC::VPeerConnection",
+      "Type": "ALIYUN::VPC::VpcPeerConnection",
       "Properties": {
         "VpcId": {
           "Ref": "VpcIdProd"
         },
         "Description": "Peering between apple-app-prod and apple-app-db",
         "Name": "apple-prod-db-peering",
-        "VpcPeerId": {
+        "AcceptingVpcId": {
           "Ref": "VpcIdDb"
         }
       }
