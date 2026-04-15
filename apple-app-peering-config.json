@@ -1,0 +1,16 @@
+{
+  "template-file-path": "templates/apple-app-peering.json",
+  "parameters": {
+    "VpcIdProd": "",
+    "VpcIdDb": "",
+    "VpcCidrProd": "10.0.0.0/16",
+    "VpcCidrDb": "192.168.0.0/16",
+    "RouteTableIdProd": "",
+    "RouteTableIdDb": "",
+    "AllowProdToDb": true,
+    "AllowDbToProd": true
+  },
+  "tags": {
+    "env": "shared"
+  }
+}

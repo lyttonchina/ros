@@ -1,0 +1,124 @@
+{
+  "ROSTemplateFormatVersion": "2015-09-01",
+  "Description": "VPC Peering connection between apple-app-prod and apple-app-db",
+  "Parameters": {
+    "VpcIdProd": {
+      "Type": "String",
+      "Description": "VPC ID of apple-app-prod stack (10.0.0.0/16)",
+      "Default": ""
+    },
+    "VpcIdDb": {
+      "Type": "String",
+      "Description": "VPC ID of apple-app-db stack (192.168.0.0/16)",
+      "Default": ""
+    },
+    "VpcCidrProd": {
+      "Type": "String",
+      "Description": "CIDR block of prod VPC",
+      "Default": "10.0.0.0/16"
+    },
+    "VpcCidrDb": {
+      "Type": "String",
+      "Description": "CIDR block of db VPC",
+      "Default": "192.168.0.0/16"
+    },
+    "RouteTableIdProd": {
+      "Type": "String",
+      "Description": "Route table ID of prod VPC. Leave empty to skip configuring prod side route.",
+      "Default": ""
+    },
+    "RouteTableIdDb": {
+      "Type": "String",
+      "Description": "Route table ID of db VPC. Leave empty to skip configuring db side route.",
+      "Default": ""
+    },
+    "AllowProdToDb": {
+      "Type": "Boolean",
+      "Description": "Add route in prod route table to reach db VPC (required for connection)",
+      "Default": true
+    },
+    "AllowDbToProd": {
+      "Type": "Boolean",
+      "Description": "Add route in db route table to reach prod VPC (required for bidirectional connection)",
+      "Default": true
+    }
+  },
+  "Conditions": {
+    "CreateProdRoute": {
+      "Fn::And": [
+        {"Fn::Not": [{"Fn::Equals": [{"Ref": "VpcIdProd"}, ""]}]},
+        {"Fn::Not": [{"Fn::Equals": [{"Ref": "RouteTableIdProd"}, ""]}]},
+        {"Condition": "AllowProdToDb"}
+      ]
+    },
+    "CreateDbRoute": {
+      "Fn::And": [
+        {"Fn::Not": [{"Fn::Equals": [{"Ref": "VpcIdDb"}, ""]}]},
+        {"Fn::Not": [{"Fn::Equals": [{"Ref": "RouteTableIdDb"}, ""]}]},
+        {"Condition": "AllowDbToProd"}
+      ]
+    }
+  },
+  "Resources": {
+    "VpcPeering": {
+      "Type": "ALIYUN::VPC::VPeerConnection",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VpcIdProd"
+        },
+        "Description": "Peering between apple-app-prod and apple-app-db",
+        "Name": "apple-prod-db-peering",
+        "VpcPeerId": {
+          "Ref": "VpcIdDb"
+        }
+      }
+    },
+    "RouteEntryProdToDb": {
+      "Type": "ALIYUN::VPC::RouteEntry",
+      "Condition": "CreateProdRoute",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "RouteTableIdProd"
+        },
+        "DestinationCidrBlock": {
+          "Ref": "VpcCidrDb"
+        },
+        "VpcPeerId": {
+          "Ref": "VpcPeering"
+        }
+      }
+    },
+    "RouteEntryDbToProd": {
+      "Type": "ALIYUN::VPC::RouteEntry",
+      "Condition": "CreateDbRoute",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "RouteTableIdDb"
+        },
+        "DestinationCidrBlock": {
+          "Ref": "VpcCidrProd"
+        },
+        "VpcPeerId": {
+          "Ref": "VpcPeering"
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "PeeringConnectionId": {
+      "Description": "VPC Peering connection ID",
+      "Value": {
+        "Ref": "VpcPeering"
+      }
+    },
+    "PeeringConnectionStatus": {
+      "Description": "VPC Peering connection status",
+      "Value": {
+        "Fn::GetAtt": [
+          "VpcPeering",
+          "Status"
+        ]
+      }
+    }
+  }
+}
