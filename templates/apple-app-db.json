@@ -15,6 +15,7 @@
       }
     },
     "RDSDBInstanceDBInstanceClass": {
+      "Default": "mysql.n1e.small.1",
       "AssociationPropertyMetadata": {
         "Category": "${RDSDBInstanceCategory}",
         "Engine": "${RDSDBInstanceEngine}",
@@ -27,7 +28,7 @@
         "en": "Database instance type. Refer the RDS database instance type reference, such as 'rds.mys2.large', 'rds.mss1.large', 'rds.pg.s1.small' etc"
       },
       "MinLength": 1,
-      "Required": true,
+      "Required": false,
       "Label": {
         "zh-cn": "实例规格",
         "en": "DBInstanceClass"
@@ -159,7 +160,9 @@
         },
         "MasterUserType": "Normal",
         "DBInstanceStorageType": "cloud_ssd",
-        "DBInstanceClass": "mysql.n1e.small.1",
+        "DBInstanceClass": {
+          "Ref": "RDSDBInstanceDBInstanceClass"
+        },
         "SecurityIPList": "0.0.0.0/0",
         "InstanceNetworkType": "VPC",
         "ZoneId": "us-east-1a"
