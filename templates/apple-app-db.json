@@ -71,9 +71,6 @@
             "IpProtocol": "icmp"
           }
         ],
-        "SecurityGroupName": {
-          "Fn::Sub": "${ALIYUN::StackName}_sg"
-        },
         "VpcId": {
           "Ref": "VPC"
         }
