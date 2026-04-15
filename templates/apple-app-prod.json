@@ -231,7 +231,7 @@
             "ZoneId": "us-east-1b"
           }
         ],
-        "LoadBalancerEdition": "Standard",
+        "LoadBalancerEdition": "Basic",
         "LoadBalancerBillingConfig": {
           "PayType": "PostPay"
         },
