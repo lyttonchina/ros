@@ -45,7 +45,7 @@
         "VpcId": {
           "Ref": "VPC"
         },
-        "CidrBlock": "10.0.0.0/24",
+        "CidrBlock": "192.168.0.0/24",
         "ZoneId": {
           "Ref": "Zone"
         }
@@ -130,7 +130,7 @@
     "VPC": {
       "Type": "ALIYUN::ECS::VPC",
       "Properties": {
-        "CidrBlock": "10.0.0.0/8",
+        "CidrBlock": "192.168.0.0/16",
         "EnableIpv6": false
       }
     },
