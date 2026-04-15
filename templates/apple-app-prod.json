@@ -159,9 +159,7 @@
           "Ref": "VPC"
         },
         "Description": "Security group for SAE instances",
-        "SecurityGroupName": {
-          "Fn::Sub": "${ALIYUN::StackName}_sg"
-        }
+        "SecurityGroupName": "apple-api-stack-prod-sg"
       },
       "DependsOn": [
         "VPC"
@@ -267,7 +265,9 @@
           "Ref": "SecurityGroup"
         },
         "Priority": 1,
-        "SourceCidrIp": "0.0.0.0/0",
+        "SourceCidrIp": {
+          "Ref": "VpcCidrBlock"
+        },
         "IpProtocol": "tcp"
       },
       "DependsOn": [
