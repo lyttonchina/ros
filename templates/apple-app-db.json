@@ -13,28 +13,6 @@
         "zh-cn": "交换机可用区",
         "en": "VSwitch Availability Zone"
       }
-    },
-    "RDSDBInstanceDBInstanceClass": {
-      "AssociationPropertyMetadata": {
-        "Category": "${RDSDBInstanceCategory}",
-        "Engine": "${RDSDBInstanceEngine}",
-        "EngineVersion": "${RDSDBInstanceEngineVersion}",
-        "ZoneId": "${RDSDBInstanceZoneId}",
-        "InstanceChargeType": "${RDSDBInstancePayType}",
-        "DBInstanceStorageType": "${RDSDBInstanceDBInstanceStorageType}"
-      },
-      "Description": {
-        "en": "Database instance type. Refer the RDS database instance type reference, such as 'rds.mys2.large', 'rds.mss1.large', 'rds.pg.s1.small' etc"
-      },
-      "MinLength": 1,
-      "Required": false,
-      "Label": {
-        "zh-cn": "实例规格",
-        "en": "DBInstanceClass"
-      },
-      "MaxLength": 64,
-      "AssociationProperty": "ALIYUN::RDS::Instance::InstanceType",
-      "Type": "String"
     }
   },
   "Resources": {
