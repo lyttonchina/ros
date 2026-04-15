@@ -1,5 +1,5 @@
 {
-  "template-file-path": "templates/apple-app-peering.json",
+  "template-file-path": "templates/apple-app-db-peering-prod.json",
   "parameters": {
     "VpcIdProd": "",
     "VpcIdDb": "",
