@@ -4,13 +4,11 @@
   "Parameters": {
     "VpcIdProd": {
       "Type": "String",
-      "Description": "VPC ID of apple-app-prod stack (10.0.0.0/16)",
-      "Default": ""
+      "Description": "VPC ID of apple-app-prod stack (10.0.0.0/16)"
     },
     "VpcIdDb": {
       "Type": "String",
-      "Description": "VPC ID of apple-app-db stack (192.168.0.0/16)",
-      "Default": ""
+      "Description": "VPC ID of apple-app-db stack (192.168.0.0/16)"
     },
     "VpcCidrProd": {
       "Type": "String",
@@ -24,44 +22,11 @@
     },
     "RouteTableIdProd": {
       "Type": "String",
-      "Description": "Route table ID of prod VPC. Leave empty to skip configuring prod side route.",
-      "Default": ""
+      "Description": "Route table ID of prod VPC"
     },
     "RouteTableIdDb": {
       "Type": "String",
-      "Description": "Route table ID of db VPC. Leave empty to skip configuring db side route.",
-      "Default": ""
-    },
-    "AllowProdToDb": {
-      "Type": "Boolean",
-      "Description": "Add route in prod route table to reach db VPC (required for connection)",
-      "Default": true
-    },
-    "AllowDbToProd": {
-      "Type": "Boolean",
-      "Description": "Add route in db route table to reach prod VPC (required for bidirectional connection)",
-      "Default": true
-    },
-    "NextHopType": {
-      "Type": "String",
-      "Description": "Route entry next hop type. Valid values: Instance, HaVip, RouterInterface, NetworkInterface, VpnGateway, IPv6Gateway, NatGateway, Attachment, VpcPeer, Ipv4Gateway, GatewayEndpoint, Ecr, GatewayLoadBalancerEndpoint",
-      "Default": "VpcPeer"
-    }
-  },
-  "Conditions": {
-    "CreateProdRoute": {
-      "Fn::And": [
-        {"Fn::Not": [{"Fn::Equals": [{"Ref": "VpcIdProd"}, ""]}]},
-        {"Fn::Not": [{"Fn::Equals": [{"Ref": "RouteTableIdProd"}, ""]}]},
-        {"Condition": "AllowProdToDb"}
-      ]
-    },
-    "CreateDbRoute": {
-      "Fn::And": [
-        {"Fn::Not": [{"Fn::Equals": [{"Ref": "VpcIdDb"}, ""]}]},
-        {"Fn::Not": [{"Fn::Equals": [{"Ref": "RouteTableIdDb"}, ""]}]},
-        {"Condition": "AllowDbToProd"}
-      ]
+      "Description": "Route table ID of db VPC"
     }
   },
   "Resources": {
@@ -80,7 +45,6 @@
     },
     "RouteEntryProdToDb": {
       "Type": "ALIYUN::ECS::Route",
-      "Condition": "CreateProdRoute",
       "Properties": {
         "RouteTableId": {
           "Ref": "RouteTableIdProd"
@@ -88,9 +52,7 @@
         "DestinationCidrBlock": {
           "Ref": "VpcCidrDb"
         },
-        "NextHopType": {
-          "Ref": "NextHopType"
-        },
+        "NextHopType": "VpcPeer",
         "NextHopId": {
           "Ref": "VpcPeering"
         }
@@ -98,7 +60,6 @@
     },
     "RouteEntryDbToProd": {
       "Type": "ALIYUN::ECS::Route",
-      "Condition": "CreateDbRoute",
       "Properties": {
         "RouteTableId": {
           "Ref": "RouteTableIdDb"
@@ -106,9 +67,7 @@
         "DestinationCidrBlock": {
           "Ref": "VpcCidrProd"
         },
-        "NextHopType": {
-          "Ref": "NextHopType"
-        },
+        "NextHopType": "VpcPeer",
         "NextHopId": {
           "Ref": "VpcPeering"
         }

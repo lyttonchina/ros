@@ -6,9 +6,7 @@
     "VpcCidrProd": "10.0.0.0/16",
     "VpcCidrDb": "192.168.0.0/16",
     "RouteTableIdProd": "vtb-0xi89zq7q7uoyfkrw6rwj",
-    "RouteTableIdDb": "vtb-0xiik236yk8e25mb5ud6c",
-    "AllowProdToDb": true,
-    "AllowDbToProd": true
+    "RouteTableIdDb": "vtb-0xiik236yk8e25mb5ud6c"
   },
   "tags": {
     "env": "shared"
