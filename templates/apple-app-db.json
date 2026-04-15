@@ -15,7 +15,6 @@
       }
     },
     "RDSDBInstanceDBInstanceClass": {
-      "Default": "mysql.n1e.small.1",
       "AssociationPropertyMetadata": {
         "Category": "${RDSDBInstanceCategory}",
         "Engine": "${RDSDBInstanceEngine}",
@@ -160,9 +159,7 @@
         },
         "MasterUserType": "Normal",
         "DBInstanceStorageType": "cloud_ssd",
-        "DBInstanceClass": {
-          "Ref": "RDSDBInstanceDBInstanceClass"
-        },
+        "DBInstanceClass": "mysql.n1e.small.1",
         "SecurityIPList": "0.0.0.0/0",
         "InstanceNetworkType": "VPC",
         "ZoneId": "us-east-1a"
