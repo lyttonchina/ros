@@ -173,7 +173,7 @@
           ]
         },
         "Deploy": true,
-        "Readiness": "{\"httpGet\":{\"path\":\"/actuator/health\",\"port\":8080,\"scheme\":\"HTTP\"},\"initialDelaySeconds\":20,\"timeoutSeconds\":5}",
+        "Readiness": "{\"httpGet\":{\"path\":\"/api/health\",\"port\":8080,\"scheme\":\"HTTP\"},\"initialDelaySeconds\":20,\"timeoutSeconds\":5}",
         "PackageType": "FatJar",
         "VSwitchId": {
           "Ref": "VSwitch"
@@ -237,7 +237,7 @@
           "HealthCheckCodes": [
             "http_2xx"
           ],
-          "HealthCheckPath": "/actuator/health",
+          "HealthCheckPath": "/api/health",
           "HealthyThreshold": 3,
           "UnhealthyThreshold": 3,
           "HealthCheckTimeout": 5,
@@ -445,7 +445,7 @@
       "Description": "Zone ID"
     },
     "HealthCheckPath": {
-      "Default": "/actuator/health",
+      "Default": "/api/health",
       "Type": "String",
       "Description": "Health Check Path"
     },
