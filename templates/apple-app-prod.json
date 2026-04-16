@@ -237,7 +237,7 @@
           "HealthCheckCodes": [
             "http_2xx"
           ],
-          "HealthCheckPath": "/api/health",
+          "HealthCheckPath": "/actuator/health",
           "HealthyThreshold": 3,
           "UnhealthyThreshold": 3,
           "HealthCheckTimeout": 5,

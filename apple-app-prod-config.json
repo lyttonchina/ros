@@ -9,7 +9,7 @@
     "VSwitchCidrBlock": "10.0.1.0/24",
     "VpcCidrBlock": "10.0.0.0/16",
     "ZoneId": "us-east-1a",
-    "HealthCheckPath": "/api/health",
+    "HealthCheckPath": "/actuator/health",
     "MainDomainName": "apple-app.cn",
     "NamespaceId": "us-east-1"
   },
