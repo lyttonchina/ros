@@ -178,7 +178,7 @@
         "VSwitchId": {
           "Ref": "VSwitch"
         },
-        "Memory": 2048,
+        "Memory": 1024,
         "Timezone": "Asia/Shanghai",
         "SecurityGroupId": {
           "Ref": "SecurityGroup"
