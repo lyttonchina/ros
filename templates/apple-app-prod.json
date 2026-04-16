@@ -46,6 +46,22 @@
         "NamespaceDescription": "Namespace for SAE applications"
       }
     },
+    "SecretDB_PASSWORD": {
+      "Type": "ALIYUN::SAE::Secret",
+      "Properties": {
+        "NamespaceId": {
+          "Fn::GetAtt": [
+            "SaeNamespace",
+            "NamespaceId"
+          ]
+        },
+        "SecretName": "db-password",
+        "SecretType": "Opaque",
+        "SecretData": {
+          "DB_PASSWORD": "sample"
+        }
+      }
+    },
     "SaeIngress": {
       "Type": "ALIYUN::SAE::Ingress",
       "Properties": {
@@ -112,7 +128,19 @@
         },
         "Jdk": "Open JDK 21",
         "Replicas": 1,
-        "Envs": "[{\"name\":\"JAVA_OPTS\",\"value\":\"-Dserver.port=8080\"}]",
+        "Envs": {
+          "Fn::Sub": [
+            "[{\"name\":\"JAVA_OPTS\",\"value\":\"-Dserver.port=8080\"},{\"name\":\"DB_PASSWORD\",\"valueFrom\":{\"secretRef\":{\"secretId\":${DB_PASSWORD_SECRET_ID},\"key\":\"DB_PASSWORD\"}}}]",
+            {
+              "DB_PASSWORD_SECRET_ID": {
+                "Fn::GetAtt": [
+                  "SecretDB_PASSWORD",
+                  "SecretId"
+                ]
+              }
+            }
+          ]
+        },
         "AppName": {
           "Ref": "AppName"
         },
@@ -134,7 +162,10 @@
           "Ref": "SecurityGroup"
         },
         "Cpu": 500
-      }
+      },
+      "DependsOn": [
+        "SecretDB_PASSWORD"
+      ]
     },
     "SecurityGroupRuleIngressHttps": {
       "Type": "ALIYUN::ECS::SecurityGroupIngress",
