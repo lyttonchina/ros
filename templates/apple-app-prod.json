@@ -370,7 +370,7 @@
             "Step": "1",
             "StabilizationWindowSeconds": 60
           },
-          "MaxReplicas": 3,
+          "MaxReplicas": 10,
           "ScaleDownRules": {
             "Disabled": false,
             "Step": "1",
@@ -443,16 +443,6 @@
       "Default": "us-east-1a",
       "Type": "String",
       "Description": "Zone ID"
-    },
-    "MinInstanceAmount": {
-      "Default": "1",
-      "Type": "String",
-      "Description": "Minimum Instance Count"
-    },
-    "MaxInstanceAmount": {
-      "Default": "10",
-      "Type": "String",
-      "Description": "Maximum Instance Count"
     },
     "HealthCheckPath": {
       "Default": "/api/health",
