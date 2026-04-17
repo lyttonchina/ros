@@ -25,6 +25,11 @@
       "Default": "dist/",
       "Type": "String",
       "Description": "前端静态文件在 OSS 中的目录路径"
+    },
+    "OssSourceAddress": {
+      "Default": "[{\"Content\":\"apple-app-web-admin-bucket.oss-cn-hangzhou.internal.aliyuncs.com\",\"Type\":\"oss\",\"Priority\":\"20\",\"Port\":80,\"Weight\":\"10\"}]",
+      "Type": "String",
+      "Description": "OSS 源站地址（JSON 数组格式）"
     }
   },
   "tags": {

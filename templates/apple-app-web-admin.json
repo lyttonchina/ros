@@ -27,6 +27,11 @@
       "Type": "String",
       "Description": "前端静态文件在 OSS 中的目录路径"
     },
+    "OssSourceAddress": {
+      "Default": "",
+      "Type": "String",
+      "Description": "OSS 源站地址（格式：bucket.oss-region.internal.aliyuncs.com，部署到不同 region 时需修改）"
+    },
     "CertType": {
       "Default": "cas",
       "Type": "String",
@@ -78,23 +83,9 @@
           "Ref": "CdnDomainName"
         },
         "CdnType": "web",
-        "Sources": [
-          {
-            "Content": {
-              "Fn::Join": [
-                "",
-                [
-                  { "Ref": "BucketName" },
-                  ".oss-${ALIYUN::Region}.internal.aliyuncs.com"
-                ]
-              ]
-            },
-            "Type": "oss",
-            "Priority": "20",
-            "Port": 80,
-            "Weight": "10"
-          }
-        ],
+        "Sources": {
+          "Ref": "OssSourceAddress"
+        },
         "Scope": "Domestic"
       },
       "DependsOn": [
@@ -158,7 +149,13 @@
       "Type": "ALIYUN::RAM::ManagedPolicy",
       "Properties": {
         "PolicyName": {
-          "Fn::Sub": "AllowCDNRead-${BucketName}"
+          "Fn::Join": [
+            "-",
+            [
+              "AllowCDNRead",
+              { "Ref": "BucketName" }
+            ]
+          ]
         },
         "PolicyDocument": {
           "Version": "1",
@@ -168,9 +165,20 @@
               "Action": [
                 "oss:GetObject"
               ],
-              "Resource": {
-                "Fn::Sub": "acs:oss:*:*:${BucketName}/${OssFrontendDir}*"
-              }
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "acs:oss:*:*:",
+                      { "Ref": "BucketName" },
+                      "/",
+                      { "Ref": "OssFrontendDir" },
+                      "*"
+                    ]
+                  ]
+                }
+              ]
             }
           ]
         },
