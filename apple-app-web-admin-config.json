@@ -25,11 +25,6 @@
       "Default": "dist/",
       "Type": "String",
       "Description": "前端静态文件在 OSS 中的目录路径"
-    },
-    "CertificateId": {
-      "Default": "",
-      "Type": "String",
-      "Description": "SSL 证书 ID（从阿里云证书服务获取）"
     }
   },
   "tags": {
