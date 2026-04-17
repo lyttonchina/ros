@@ -3,7 +3,7 @@
   "Description": "Web Admin 前端静态资源部署：OSS + CDN + DNS",
   "Parameters": {
     "BucketName": {
-      "Default": "web-admin-frontend-bucket",
+      "Default": "web-admin-frontend-bucket-3",
       "Type": "String",
       "Description": "OSS 存储桶名称（全局唯一）"
     },
@@ -91,7 +91,7 @@
             }
           ]
         },
-        "Scope": "Domestic"
+        "Scope": "domestic"
       },
       "DependsOn": [
         "OssBucket",
@@ -156,7 +156,10 @@
         "TTL": 600,
         "Type": "CNAME",
         "Value": {
-          "Ref": "CdnDomainName"
+          "Fn::GetAtt": [
+            "CdnDomain",
+            "Cname"
+          ]
         },
         "RR": {
           "Ref": "SubDomainName"
