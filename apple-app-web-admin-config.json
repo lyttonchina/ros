@@ -7,12 +7,12 @@
       "Description": "OSS 存储桶名称（全局唯一）"
     },
     "CdnDomainName": {
-      "Default": "admin-uat.apple-app.cn",
+      "Default": "admin.apple-app.cn",
       "Type": "String",
       "Description": "CDN 加速域名（需为已备案域名）"
     },
     "SubDomainName": {
-      "Default": "admin-uat",
+      "Default": "admin",
       "Type": "String",
       "Description": "子域名 / RR 记录"
     },

@@ -8,17 +8,17 @@
       "Description": "OSS 存储桶名称（全局唯一）"
     },
     "CdnDomainName": {
-      "Default": "web-admin.cdn.example.com",
+      "Default": "admin.apple-app.cn",
       "Type": "String",
       "Description": "CDN 加速域名（需为已备案域名）"
     },
     "SubDomainName": {
-      "Default": "web-admin",
+      "Default": "admin",
       "Type": "String",
       "Description": "子域名 / RR 记录"
     },
     "MainDomainName": {
-      "Default": "example.com",
+      "Default": "apple-app.cn",
       "Type": "String",
       "Description": "主域名（需已在阿里云 DNS 中添加）"
     },
@@ -27,13 +27,39 @@
       "Type": "String",
       "Description": "前端静态文件在 OSS 中的目录路径"
     },
-    "CertificateId": {
+    "CertType": {
+      "Default": "cas",
+      "Type": "String",
+      "Description": "证书类型：cas(阿里云证书服务)/free(免费证书)/upload(上传证书)",
+      "AllowedValues": [
+        "cas",
+        "free",
+        "upload"
+      ]
+    },
+    "CertName": {
       "Default": "",
       "Type": "String",
-      "Description": "SSL 证书 ID（从阿里云证书服务获取）"
+      "Description": "证书名称（从阿里云证书服务获取，certType 为 cas 时必填）"
+    },
+    "ServerCertificate": {
+      "Default": "",
+      "Type": "String",
+      "Description": "证书内容（PEM 格式，certType 为 cas 时留空）"
+    },
+    "PrivateKey": {
+      "Default": "",
+      "Type": "String",
+      "Description": "私钥内容（PEM 格式，certType 为 cas 时留空）"
     }
   },
   "Resources": {
+    "AutoEnableCDN": {
+      "Type": "ALIYUN::ROS::AutoEnableService",
+      "Properties": {
+        "ServiceName": "CDN"
+      }
+    },
     "OssBucket": {
       "Type": "ALIYUN::OSS::Bucket",
       "Properties": {
@@ -45,37 +71,6 @@
         "RedundancyType": "LRS"
       }
     },
-    "OssBucketPolicy": {
-      "Type": "ALIYUN::OSS::BucketPolicy",
-      "Properties": {
-        "BucketName": {
-          "Ref": "OssBucket"
-        },
-        "PolicyString": {
-          "Fn::Sub": [
-            "{\"Statement\":[{\"Action\":[\"oss:GetObject\"],\"Effect\":\"Allow\",\"Principal\":{\"CanonicalUser\":[\"${CdnOwnerId}\"]},\"Resource\":[\"acs:oss:*:*:${BucketName}/${OssFrontendDir}*\"]}],\"Version\":\"1\"}",
-            {
-              "BucketName": {
-                "Ref": "BucketName"
-              },
-              "CdnOwnerId": {
-                "Fn::GetAtt": [
-                  "CdnDomain",
-                  "CdnOwnerId"
-                ]
-              },
-              "OssFrontendDir": {
-                "Ref": "OssFrontendDir"
-              }
-            }
-          ]
-        }
-      },
-      "DependsOn": [
-        "OssBucket",
-        "CdnDomain"
-      ]
-    },
     "CdnDomain": {
       "Type": "ALIYUN::CDN::Domain",
       "Properties": {
@@ -83,36 +78,96 @@
           "Ref": "CdnDomainName"
         },
         "CdnType": "web",
-        "Sources": [
+        "Sources": {
+          "Fn::Sub": "[{\"content\":\"${BucketName}.oss-${ALIYUN::Region}.internal.aliyuncs.com\",\"type\":\"oss\",\"priority\":\"20\",\"port\":80,\"weight\":\"10\"}]"
+        },
+        "Scope": "Domestic"
+      },
+      "DependsOn": [
+        "OssBucket",
+        "AutoEnableCDN"
+      ]
+    },
+    "CdnDomainConfig": {
+      "Type": "ALIYUN::CDN::DomainConfig",
+      "Properties": {
+        "DomainNames": {
+          "Ref": "CdnDomainName"
+        },
+        "FunctionList": [
           {
-            "SourceType": "oss",
-            "SourceContent": {
-              "Fn::Sub": [
-                "${BucketName}.oss-${Region}.internal.aliyuncs.com",
-                {
-                  "BucketName": {
-                    "Ref": "BucketName"
-                  }
-                }
-              ]
-            },
-            "SourcePriority": "1",
-            "Path": {
-              "Ref": "OssFrontendDir"
-            }
+            "FunctionName": "l2_oss_key",
+            "FunctionArgs": [
+              {
+                "ArgName": "private_oss_auth",
+                "ArgValue": "on"
+              },
+              {
+                "ArgName": "private_oss_tbl",
+                "ArgValue": ""
+              }
+            ]
           }
-        ],
-        "Scope": "Domestic",
-        "Https": {
-          "Status": "on",
-          "CertId": {
-            "Ref": "CertificateId"
+        ]
+      },
+      "DependsOn": [
+        "CdnDomain"
+      ]
+    },
+    "CdnHttpsConfig": {
+      "Type": "ALIYUN::OOS::Execution",
+      "Properties": {
+        "TemplateName": "ACS-CDN-SetDomainServerCertificate",
+        "Parameters": {
+          "DomainName": {
+            "Ref": "CdnDomainName"
           },
-          "CertType": "cas"
+          "CertType": {
+            "Ref": "CertType"
+          },
+          "CertName": {
+            "Ref": "CertName"
+          },
+          "ServerCertificate": {
+            "Ref": "ServerCertificate"
+          },
+          "PrivateKey": {
+            "Ref": "PrivateKey"
+          }
         }
       },
       "DependsOn": [
-        "OssBucket"
+        "CdnDomainConfig"
+      ]
+    },
+    "RamPolicy": {
+      "Type": "ALIYUN::RAM::ManagedPolicy",
+      "Properties": {
+        "PolicyName": {
+          "Fn::Sub": "AllowCDNRead-${BucketName}"
+        },
+        "PolicyDocument": {
+          "Version": "1",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "oss:GetObject"
+              ],
+              "Resource": {
+                "Fn::Sub": "acs:oss:*:*:${BucketName}/${OssFrontendDir}*"
+              }
+            }
+          ]
+        },
+        "Description": "Allow CDN to read objects from OSS bucket",
+        "Roles": [
+          "AliyunCDNDefaultRole"
+        ]
+      },
+      "DependsOn": [
+        "OssBucket",
+        "CdnDomain"
       ]
     },
     "DnsRecord": {
@@ -145,14 +200,7 @@
     "OssBucketEndpoint": {
       "Description": "OSS 存储桶内网访问地址（用于回源配置）",
       "Value": {
-        "Fn::Sub": [
-          "${BucketName}.oss-${Region}-internal.aliyuncs.com",
-          {
-            "BucketName": {
-              "Ref": "BucketName"
-            }
-          }
-        ]
+        "Fn::Sub": "${BucketName}.oss-${ALIYUN::Region}-internal.aliyuncs.com"
       }
     },
     "CdnDomainName": {
