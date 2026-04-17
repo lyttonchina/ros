@@ -1,11 +1,13 @@
 {
   "template-file-path": "templates/apple-app-web-admin.json",
   "parameters": {
-    "BucketName": "apple-app-admin-bucket-3",
+    "BucketName": "apple-app-admin-bucket-5",
     "CdnDomainName": "admin.apple-app.cn",
     "SubDomainName": "admin",
     "MainDomainName": "apple-app.cn",
-    "OssFrontendDir": "dist/"
+    "OssFrontendDir": "dist/",
+    "CertType": "cas",
+    "CertId": "24508261"
   },
   "tags": {
     "env": "apple-app-web-admin"

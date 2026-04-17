@@ -3,7 +3,7 @@
   "Description": "Web Admin 前端静态资源部署：OSS + CDN + DNS",
   "Parameters": {
     "BucketName": {
-      "Default": "web-admin-frontend-bucket-3",
+      "Default": "web-admin-frontend-bucket-5",
       "Type": "String",
       "Description": "OSS 存储桶名称（全局唯一）"
     },
@@ -28,19 +28,23 @@
       "Description": "前端静态文件在 OSS 中的目录路径"
     },
     "CertType": {
-      "Default": "cas",
+      "Default": "upload",
       "Type": "String",
-      "Description": "证书类型：cas(阿里云证书服务)/free(免费证书)/upload(上传证书)",
+      "Description": "证书类型：cas(阿里云证书服务)/upload(上传证书)",
       "AllowedValues": [
         "cas",
-        "free",
         "upload"
       ]
     },
     "CertName": {
       "Default": "",
       "Type": "String",
-      "Description": "证书名称（从阿里云证书服务获取，certType 为 cas 时必填）"
+      "Description": "证书名称（certType 为 cas 时与 certId 二选一）"
+    },
+    "CertId": {
+      "Default": "24508261",
+      "Type": "String",
+      "Description": "证书 ID（从阿里云证书服务获取，certType 为 cas 时与 certName 二选一）"
     },
     "ServerCertificate": {
       "Default": "",
@@ -129,19 +133,22 @@
       "Properties": {
         "TemplateName": "ACS-CDN-SetDomainServerCertificate",
         "Parameters": {
-          "DomainName": {
+          "domainName": {
             "Ref": "CdnDomainName"
           },
-          "CertType": {
+          "certType": {
             "Ref": "CertType"
           },
-          "CertName": {
+          "certName": {
             "Ref": "CertName"
           },
-          "ServerCertificate": {
+          "certId": {
+            "Ref": "CertId"
+          },
+          "serverCertificate": {
             "Ref": "ServerCertificate"
           },
-          "PrivateKey": {
+          "privateKey": {
             "Ref": "PrivateKey"
           }
         }
