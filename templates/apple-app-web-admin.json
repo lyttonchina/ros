@@ -145,53 +145,6 @@
         "CdnDomainConfig"
       ]
     },
-    "RamPolicy": {
-      "Type": "ALIYUN::RAM::ManagedPolicy",
-      "Properties": {
-        "PolicyName": {
-          "Fn::Join": [
-            "-",
-            [
-              "AllowCDNRead",
-              { "Ref": "BucketName" }
-            ]
-          ]
-        },
-        "PolicyDocument": {
-          "Version": "1",
-          "Statement": [
-            {
-              "Effect": "Allow",
-              "Action": [
-                "oss:GetObject"
-              ],
-              "Resource": [
-                {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "acs:oss:*:*:",
-                      { "Ref": "BucketName" },
-                      "/",
-                      { "Ref": "OssFrontendDir" },
-                      "*"
-                    ]
-                  ]
-                }
-              ]
-            }
-          ]
-        },
-        "Description": "Allow CDN to read objects from OSS bucket",
-        "Roles": [
-          "AliyunCDNDefaultRole"
-        ]
-      },
-      "DependsOn": [
-        "OssBucket",
-        "CdnDomain"
-      ]
-    },
     "DnsRecord": {
       "Type": "ALIYUN::DNS::DomainRecord",
       "Properties": {
