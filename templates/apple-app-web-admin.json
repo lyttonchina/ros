@@ -28,7 +28,7 @@
       "Description": "前端静态文件在 OSS 中的目录路径"
     },
     "CertType": {
-      "Default": "upload",
+      "Default": "cas",
       "Type": "String",
       "Description": "证书类型：cas(阿里云证书服务)/upload(上传证书)",
       "AllowedValues": [
