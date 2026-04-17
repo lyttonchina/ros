@@ -1,0 +1,186 @@
+{
+  "ROSTemplateFormatVersion": "2015-09-01",
+  "Description": "Web Admin 前端静态资源部署：OSS + CDN + DNS",
+  "Parameters": {
+    "BucketName": {
+      "Default": "web-admin-frontend-bucket",
+      "Type": "String",
+      "Description": "OSS 存储桶名称（全局唯一）"
+    },
+    "CdnDomainName": {
+      "Default": "web-admin.cdn.example.com",
+      "Type": "String",
+      "Description": "CDN 加速域名（需为已备案域名）"
+    },
+    "SubDomainName": {
+      "Default": "web-admin",
+      "Type": "String",
+      "Description": "子域名 / RR 记录"
+    },
+    "MainDomainName": {
+      "Default": "example.com",
+      "Type": "String",
+      "Description": "主域名（需已在阿里云 DNS 中添加）"
+    },
+    "OssFrontendDir": {
+      "Default": "dist/",
+      "Type": "String",
+      "Description": "前端静态文件在 OSS 中的目录路径"
+    },
+    "CertificateId": {
+      "Default": "",
+      "Type": "String",
+      "Description": "SSL 证书 ID（从阿里云证书服务获取）"
+    }
+  },
+  "Resources": {
+    "OssBucket": {
+      "Type": "ALIYUN::OSS::Bucket",
+      "Properties": {
+        "BucketName": {
+          "Ref": "BucketName"
+        },
+        "StorageClass": "Standard",
+        "AccessControl": "private",
+        "RedundancyType": "LRS"
+      }
+    },
+    "OssBucketPolicy": {
+      "Type": "ALIYUN::OSS::BucketPolicy",
+      "Properties": {
+        "BucketName": {
+          "Ref": "OssBucket"
+        },
+        "PolicyString": {
+          "Fn::Sub": [
+            "{\"Statement\":[{\"Action\":[\"oss:GetObject\"],\"Effect\":\"Allow\",\"Principal\":{\"CanonicalUser\":[\"${CdnOwnerId}\"]},\"Resource\":[\"acs:oss:*:*:${BucketName}/${OssFrontendDir}*\"]}],\"Version\":\"1\"}",
+            {
+              "BucketName": {
+                "Ref": "BucketName"
+              },
+              "CdnOwnerId": {
+                "Fn::GetAtt": [
+                  "CdnDomain",
+                  "CdnOwnerId"
+                ]
+              },
+              "OssFrontendDir": {
+                "Ref": "OssFrontendDir"
+              }
+            }
+          ]
+        }
+      },
+      "DependsOn": [
+        "OssBucket",
+        "CdnDomain"
+      ]
+    },
+    "CdnDomain": {
+      "Type": "ALIYUN::CDN::Domain",
+      "Properties": {
+        "DomainName": {
+          "Ref": "CdnDomainName"
+        },
+        "CdnType": "web",
+        "Sources": [
+          {
+            "SourceType": "oss",
+            "SourceContent": {
+              "Fn::Sub": [
+                "${BucketName}.oss-${Region}.internal.aliyuncs.com",
+                {
+                  "BucketName": {
+                    "Ref": "BucketName"
+                  }
+                }
+              ]
+            },
+            "SourcePriority": "1",
+            "Path": {
+              "Ref": "OssFrontendDir"
+            }
+          }
+        ],
+        "Scope": "Domestic",
+        "Https": {
+          "Status": "on",
+          "CertId": {
+            "Ref": "CertificateId"
+          },
+          "CertType": "cas"
+        }
+      },
+      "DependsOn": [
+        "OssBucket"
+      ]
+    },
+    "DnsRecord": {
+      "Type": "ALIYUN::DNS::DomainRecord",
+      "Properties": {
+        "TTL": 600,
+        "Type": "CNAME",
+        "Value": {
+          "Ref": "CdnDomainName"
+        },
+        "RR": {
+          "Ref": "SubDomainName"
+        },
+        "DomainName": {
+          "Ref": "MainDomainName"
+        }
+      },
+      "DependsOn": [
+        "CdnDomain"
+      ]
+    }
+  },
+  "Outputs": {
+    "OssBucketName": {
+      "Description": "OSS 存储桶名称",
+      "Value": {
+        "Ref": "OssBucket"
+      }
+    },
+    "OssBucketEndpoint": {
+      "Description": "OSS 存储桶内网访问地址（用于回源配置）",
+      "Value": {
+        "Fn::Sub": [
+          "${BucketName}.oss-${Region}-internal.aliyuncs.com",
+          {
+            "BucketName": {
+              "Ref": "BucketName"
+            }
+          }
+        ]
+      }
+    },
+    "CdnDomainName": {
+      "Description": "CDN 加速域名",
+      "Value": {
+        "Ref": "CdnDomainName"
+      }
+    },
+    "CdnCname": {
+      "Description": "CDN CNAME 值（需在 DNS 中配置）",
+      "Value": {
+        "Fn::GetAtt": [
+          "CdnDomain",
+          "Cname"
+        ]
+      }
+    },
+    "DnsRecordId": {
+      "Description": "DNS 解析记录 ID",
+      "Value": {
+        "Ref": "DnsRecord"
+      }
+    },
+    "WebsiteUrl": {
+      "Description": "前端站点访问地址",
+      "Value": {
+        "Fn::Sub": "https://${SubDomainName}.${MainDomainName}"
+      }
+    }
+  }
+}

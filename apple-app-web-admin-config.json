@@ -1,0 +1,38 @@
+{
+  "template-file-path": "templates/apple-app-web-admin.json",
+  "parameters": {
+    "BucketName": {
+      "Default": "apple-app-web-admin-bucket",
+      "Type": "String",
+      "Description": "OSS 存储桶名称（全局唯一）"
+    },
+    "CdnDomainName": {
+      "Default": "admin-uat.apple-app.cn",
+      "Type": "String",
+      "Description": "CDN 加速域名（需为已备案域名）"
+    },
+    "SubDomainName": {
+      "Default": "admin-uat",
+      "Type": "String",
+      "Description": "子域名 / RR 记录"
+    },
+    "MainDomainName": {
+      "Default": "apple-app.cn",
+      "Type": "String",
+      "Description": "主域名（需已在阿里云 DNS 中添加）"
+    },
+    "OssFrontendDir": {
+      "Default": "dist/",
+      "Type": "String",
+      "Description": "前端静态文件在 OSS 中的目录路径"
+    },
+    "CertificateId": {
+      "Default": "",
+      "Type": "String",
+      "Description": "SSL 证书 ID（从阿里云证书服务获取）"
+    }
+  },
+  "tags": {
+    "env": "apple-app-web-admin"
+  }
+}
