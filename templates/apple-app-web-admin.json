@@ -3,7 +3,7 @@
   "Description": "Web Admin 前端静态资源部署：OSS + CDN + DNS",
   "Parameters": {
     "BucketName": {
-      "Default": "web-admin-frontend-bucket-5",
+      "Default": "web-admin-frontend-bucket",
       "Type": "String",
       "Description": "OSS 存储桶名称（全局唯一）"
     },
