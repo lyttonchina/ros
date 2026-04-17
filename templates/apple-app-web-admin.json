@@ -81,15 +81,7 @@
         "Sources": [
           {
             "Content": {
-              "Fn::Join": [
-                "",
-                [
-                  {
-                    "Ref": "BucketName"
-                  },
-                  ".oss-${ALIYUN::Region}-internal.aliyuncs.com"
-                ]
-              ]
+              "Fn::Sub": "${BucketName}.oss-${ALIYUN::Region}-internal.aliyuncs.com"
             },
             "Type": "oss",
             "Priority": 1,
