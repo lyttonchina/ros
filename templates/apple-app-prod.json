@@ -173,7 +173,9 @@
           ]
         },
         "Deploy": true,
-        "Readiness": "{\"httpGet\":{\"path\":\"/api/health\",\"port\":8080,\"scheme\":\"HTTP\"},\"initialDelaySeconds\":20,\"timeoutSeconds\":5}",
+        "Readiness": {
+          "Fn::Sub": "{\"httpGet\":{\"path\":\"${HealthCheckPath}\",\"port\":8080,\"scheme\":\"HTTP\"},\"initialDelaySeconds\":${HealthCheckInitialDelay},\"timeoutSeconds\":5}"
+        },
         "PackageType": "FatJar",
         "VSwitchId": {
           "Ref": "VSwitch"
@@ -458,6 +460,11 @@
       "Default": "us-east-1",
       "Type": "String",
       "Description": "SAE namespace logical ID only; stack region is prefixed automatically"
+    },
+    "HealthCheckInitialDelay": {
+      "Default": 300,
+      "Type": "Number",
+      "Description": "健康检查初始延迟秒数（initialDelaySeconds），应用启动后等待这么久才开始健康检查。建议设为应用实际启动时间的 1.2~1.5 倍"
     }
   },
   "Outputs": {

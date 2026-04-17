@@ -10,6 +10,7 @@
     "VpcCidrBlock": "10.0.0.0/16",
     "ZoneId": "us-east-1a",
     "HealthCheckPath": "/api/health",
+    "HealthCheckInitialDelay": 300,
     "MainDomainName": "apple-app.cn",
     "NamespaceId": "us-east-1"
   },
