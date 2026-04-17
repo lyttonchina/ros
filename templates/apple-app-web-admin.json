@@ -78,9 +78,23 @@
           "Ref": "CdnDomainName"
         },
         "CdnType": "web",
-        "Sources": {
-          "Fn::Sub": "[{\"content\":\"${BucketName}.oss-${ALIYUN::Region}.internal.aliyuncs.com\",\"type\":\"oss\",\"priority\":\"20\",\"port\":80,\"weight\":\"10\"}]"
-        },
+        "Sources": [
+          {
+            "Content": {
+              "Fn::Join": [
+                "",
+                [
+                  { "Ref": "BucketName" },
+                  ".oss-${ALIYUN::Region}.internal.aliyuncs.com"
+                ]
+              ]
+            },
+            "Type": "oss",
+            "Priority": "20",
+            "Port": 80,
+            "Weight": "10"
+          }
+        ],
         "Scope": "Domestic"
       },
       "DependsOn": [
