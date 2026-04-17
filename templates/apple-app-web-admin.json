@@ -27,11 +27,6 @@
       "Type": "String",
       "Description": "前端静态文件在 OSS 中的目录路径"
     },
-    "OssSourceAddress": {
-      "Default": "",
-      "Type": "String",
-      "Description": "OSS 源站地址（格式：bucket.oss-region.internal.aliyuncs.com，部署到不同 region 时需修改）"
-    },
     "CertType": {
       "Default": "cas",
       "Type": "String",
@@ -83,9 +78,24 @@
           "Ref": "CdnDomainName"
         },
         "CdnType": "web",
-        "Sources": {
-          "Ref": "OssSourceAddress"
-        },
+        "Sources": [
+          {
+            "Content": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "BucketName"
+                  },
+                  ".oss-${ALIYUN::Region}-internal.aliyuncs.com"
+                ]
+              ]
+            },
+            "Type": "oss",
+            "Priority": 1,
+            "Port": 80
+          }
+        ],
         "Scope": "Domestic"
       },
       "DependsOn": [
