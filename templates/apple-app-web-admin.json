@@ -80,9 +80,7 @@
         "CdnType": "web",
         "Sources": [
           {
-            "Content": {
-              "Fn::Sub": "${BucketName}.oss-${ALIYUN::Region}-internal.aliyuncs.com"
-            },
+            "Content": "${BucketName}.oss-${ALIYUN::Region}-internal.aliyuncs.com",
             "Type": "oss",
             "Priority": 1,
             "Port": 80
@@ -176,9 +174,7 @@
     },
     "OssBucketEndpoint": {
       "Description": "OSS 存储桶内网访问地址（用于回源配置）",
-      "Value": {
-        "Fn::Sub": "${BucketName}.oss-${ALIYUN::Region}-internal.aliyuncs.com"
-      }
+        "Value": "${BucketName}.oss-${ALIYUN::Region}-internal.aliyuncs.com"
     },
     "CdnDomainName": {
       "Description": "CDN 加速域名",
