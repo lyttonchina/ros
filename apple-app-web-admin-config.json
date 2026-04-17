@@ -1,36 +1,12 @@
 {
   "template-file-path": "templates/apple-app-web-admin.json",
   "parameters": {
-    "BucketName": {
-      "Default": "apple-app-web-admin-bucket",
-      "Type": "String",
-      "Description": "OSS 存储桶名称（全局唯一）"
-    },
-    "CdnDomainName": {
-      "Default": "admin.apple-app.cn",
-      "Type": "String",
-      "Description": "CDN 加速域名（需为已备案域名）"
-    },
-    "SubDomainName": {
-      "Default": "admin",
-      "Type": "String",
-      "Description": "子域名 / RR 记录"
-    },
-    "MainDomainName": {
-      "Default": "apple-app.cn",
-      "Type": "String",
-      "Description": "主域名（需已在阿里云 DNS 中添加）"
-    },
-    "OssFrontendDir": {
-      "Default": "dist/",
-      "Type": "String",
-      "Description": "前端静态文件在 OSS 中的目录路径"
-    },
-    "OssSourceAddress": {
-      "Default": "[{\"Content\":\"apple-app-web-admin-bucket.oss-cn-hangzhou.internal.aliyuncs.com\",\"Type\":\"oss\",\"Priority\":\"20\",\"Port\":80,\"Weight\":\"10\"}]",
-      "Type": "String",
-      "Description": "OSS 源站地址（JSON 数组格式）"
-    }
+    "BucketName": "apple-app-admin-bucket",
+    "CdnDomainName": "admin.apple-app.cn",
+    "SubDomainName": "admin",
+    "MainDomainName": "apple-app.cn",
+    "OssFrontendDir": "dist/",
+    "OssSourceAddress": "[{\"Content\":\"apple-app-admin-bucket.oss-cn-hangzhou.internal.aliyuncs.com\",\"Type\":\"oss\",\"Priority\":\"20\",\"Port\":80,\"Weight\":\"10\"}]"
   },
   "tags": {
     "env": "apple-app-web-admin"
