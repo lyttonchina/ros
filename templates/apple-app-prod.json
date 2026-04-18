@@ -180,12 +180,12 @@
         "VSwitchId": {
           "Ref": "VSwitch"
         },
-        "Memory": 2048,
+        "Memory": 4096,
         "Timezone": "Asia/Shanghai",
         "SecurityGroupId": {
           "Ref": "SecurityGroup"
         },
-        "Cpu": 500
+        "Cpu": 2000
       },
       "DependsOn": [
         "SecretDB_PASSWORD",
