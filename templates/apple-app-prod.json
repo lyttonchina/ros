@@ -421,40 +421,10 @@
       "Type": "String",
       "Description": "SAE Application Name"
     },
-    "InstanceSpec": {
-      "Default": "cpu:0.5,memory:1024",
-      "Type": "String",
-      "Description": "Instance Specification"
-    },
-    "SubDomainName": {
-      "Default": "api-prod",
-      "Type": "String",
-      "Description": "Sub-domain / RR (host record)"
-    },
-    "VSwitchCidrBlock": {
-      "Default": "10.0.1.0/24",
-      "Type": "String",
-      "Description": "VSwitch CIDR Block"
-    },
-    "VpcCidrBlock": {
-      "Default": "10.0.0.0/16",
-      "Type": "String",
-      "Description": "VPC CIDR Block"
-    },
-    "ZoneId": {
-      "Default": "us-east-1a",
-      "Type": "String",
-      "Description": "Zone ID"
-    },
     "HealthCheckPath": {
       "Default": "/api/health",
       "Type": "String",
       "Description": "Health Check Path"
-    },
-    "MainDomainName": {
-      "Default": "apple-app.cn",
-      "Type": "String",
-      "Description": "Hosted root domain (already added in Aliyun DNS)"
     },
     "NamespaceId": {
       "Default": "us-east-1",
