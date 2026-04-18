@@ -138,7 +138,7 @@
     "SaeApplication": {
       "Type": "ALIYUN::SAE::Application",
       "Properties": {
-        "PackageUrl": "https://my-java-app-bucket.oss-us-east-1.aliyuncs.com/releases/hello-world-1.0-SNAPSHOT.jar",
+        "PackageUrl": "https://apple-application-bj.oss-cn-beijing.aliyuncs.com/releases/yudao-server.jar",
         "VpcId": {
           "Ref": "VPC"
         },
