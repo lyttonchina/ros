@@ -71,8 +71,9 @@
           "Ref": "BucketName"
         },
         "StorageClass": "Standard",
-        "AccessControl": "private",
-        "RedundancyType": "LRS"
+        "AccessControl": "public-read",
+        "RedundancyType": "LRS",
+        "BlockPublicAccess": false
       }
     },
     "CdnDomain": {
@@ -102,32 +103,6 @@
         "AutoEnableCDN"
       ]
     },
-    "CdnDomainConfig": {
-      "Type": "ALIYUN::CDN::DomainConfig",
-      "Properties": {
-        "DomainNames": {
-          "Ref": "CdnDomainName"
-        },
-        "FunctionList": [
-          {
-            "FunctionName": "l2_oss_key",
-            "FunctionArgs": [
-              {
-                "ArgName": "private_oss_auth",
-                "ArgValue": "on"
-              },
-              {
-                "ArgName": "private_oss_tbl",
-                "ArgValue": ""
-              }
-            ]
-          }
-        ]
-      },
-      "DependsOn": [
-        "CdnDomain"
-      ]
-    },
     "CdnHttpsConfig": {
       "Type": "ALIYUN::OOS::Execution",
       "Properties": {
@@ -154,7 +129,7 @@
         }
       },
       "DependsOn": [
-        "CdnDomainConfig"
+        "CdnDomain"
       ]
     },
     "DnsRecord": {
