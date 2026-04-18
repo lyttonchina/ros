@@ -1,62 +1,5 @@
 {
   "ROSTemplateFormatVersion": "2015-09-01",
-  "Description": "Web Admin 前端静态资源部署：OSS + CDN + DNS",
-  "Parameters": {
-    "BucketName": {
-      "Default": "web-admin-prod-gugangzhou",
-      "Type": "String",
-      "Description": "OSS 存储桶名称（全局唯一）"
-    },
-    "CdnDomainName": {
-      "Default": "admin.apple-app.cn",
-      "Type": "String",
-      "Description": "CDN 加速域名（需为已备案域名）"
-    },
-    "SubDomainName": {
-      "Default": "admin",
-      "Type": "String",
-      "Description": "子域名 / RR 记录"
-    },
-    "MainDomainName": {
-      "Default": "apple-app.cn",
-      "Type": "String",
-      "Description": "主域名（需已在阿里云 DNS 中添加）"
-    },
-    "OssFrontendDir": {
-      "Default": "dist/",
-      "Type": "String",
-      "Description": "前端静态文件在 OSS 中的目录路径"
-    },
-    "CertType": {
-      "Default": "cas",
-      "Type": "String",
-      "Description": "证书类型：cas(阿里云证书服务)/upload(上传证书)",
-      "AllowedValues": [
-        "cas",
-        "upload"
-      ]
-    },
-    "CertName": {
-      "Default": "",
-      "Type": "String",
-      "Description": "证书名称（certType 为 cas 时与 certId 二选一）"
-    },
-    "CertId": {
-      "Default": "24508261",
-      "Type": "String",
-      "Description": "证书 ID（从阿里云证书服务获取，certType 为 cas 时与 certName 二选一）"
-    },
-    "ServerCertificate": {
-      "Default": "",
-      "Type": "String",
-      "Description": "证书内容（PEM 格式，certType 为 cas 时留空）"
-    },
-    "PrivateKey": {
-      "Default": "",
-      "Type": "String",
-      "Description": "私钥内容（PEM 格式，certType 为 cas 时留空）"
-    }
-  },
   "Resources": {
     "AutoEnableCDN": {
       "Type": "ALIYUN::ROS::AutoEnableService",
@@ -67,70 +10,14 @@
     "OssBucket": {
       "Type": "ALIYUN::OSS::Bucket",
       "Properties": {
+        "AccessControl": "public-read",
+        "BlockPublicAccess": false,
+        "StorageClass": "Standard",
         "BucketName": {
           "Ref": "BucketName"
         },
-        "StorageClass": "Standard",
-        "AccessControl": "public-read",
-        "RedundancyType": "LRS",
-        "BlockPublicAccess": false
+        "RedundancyType": "LRS"
       }
-    },
-    "CdnDomain": {
-      "Type": "ALIYUN::CDN::Domain",
-      "Properties": {
-        "DomainName": {
-          "Ref": "CdnDomainName"
-        },
-        "CdnType": "web",
-        "Sources": {
-          "Fn::Sub": [
-            "[{\"content\":\"${content}\", \"type\":\"oss\", \"priority\":\"20\", \"port\":80}]",
-            {
-              "content": {
-                "Fn::GetAtt": [
-                  "OssBucket",
-                  "DomainName"
-                ]
-              }
-            }
-          ]
-        },
-        "Scope": "domestic"
-      },
-      "DependsOn": [
-        "OssBucket",
-        "AutoEnableCDN"
-      ]
-    },
-    "CdnHttpsConfig": {
-      "Type": "ALIYUN::OOS::Execution",
-      "Properties": {
-        "TemplateName": "ACS-CDN-SetDomainServerCertificate",
-        "Parameters": {
-          "domainName": {
-            "Ref": "CdnDomainName"
-          },
-          "certType": {
-            "Ref": "CertType"
-          },
-          "certName": {
-            "Ref": "CertName"
-          },
-          "certId": {
-            "Ref": "CertId"
-          },
-          "serverCertificate": {
-            "Ref": "ServerCertificate"
-          },
-          "privateKey": {
-            "Ref": "PrivateKey"
-          }
-        }
-      },
-      "DependsOn": [
-        "CdnDomain"
-      ]
     },
     "DnsRecord": {
       "Type": "ALIYUN::DNS::DomainRecord",
@@ -153,6 +40,119 @@
       "DependsOn": [
         "CdnDomain"
       ]
+    },
+    "CdnDomain": {
+      "Type": "ALIYUN::CDN::Domain",
+      "Properties": {
+        "Sources": {
+          "Fn::Sub": [
+            "[{\"content\":\"${content}\", \"type\":\"oss\", \"priority\":\"20\", \"port\":80}]",
+            {
+              "content": {
+                "Fn::GetAtt": [
+                  "OssBucket",
+                  "DomainName"
+                ]
+              }
+            }
+          ]
+        },
+        "DomainName": {
+          "Ref": "CdnDomainName"
+        },
+        "CdnType": "web",
+        "Scope": "domestic"
+      },
+      "DependsOn": [
+        "OssBucket",
+        "AutoEnableCDN"
+      ]
+    },
+    "CdnHttpsConfig": {
+      "Type": "ALIYUN::OOS::Execution",
+      "Properties": {
+        "Parameters": {
+          "certId": {
+            "Ref": "CertId"
+          },
+          "domainName": {
+            "Ref": "CdnDomainName"
+          },
+          "certName": {
+            "Ref": "CertName"
+          },
+          "privateKey": {
+            "Ref": "PrivateKey"
+          },
+          "certType": {
+            "Ref": "CertType"
+          },
+          "serverCertificate": {
+            "Ref": "ServerCertificate"
+          }
+        },
+        "TemplateName": "ACS-CDN-SetDomainServerCertificate"
+      },
+      "DependsOn": [
+        "CdnDomain"
+      ]
+    }
+  },
+  "Description": "Web Admin 前端静态资源部署：OSS + CDN + DNS",
+  "Parameters": {
+    "CertId": {
+      "Default": "24508261",
+      "Type": "String",
+      "Description": "证书 ID（从阿里云证书服务获取，certType 为 cas 时与 certName 二选一）"
+    },
+    "CdnDomainName": {
+      "Default": "admin.apple-app.cn",
+      "Type": "String",
+      "Description": "CDN 加速域名（需为已备案域名）"
+    },
+    "SubDomainName": {
+      "Default": "admin",
+      "Type": "String",
+      "Description": "子域名 / RR 记录"
+    },
+    "CertName": {
+      "Default": "",
+      "Type": "String",
+      "Description": "证书名称（certType 为 cas 时与 certId 二选一）"
+    },
+    "OssFrontendDir": {
+      "Default": "dist/",
+      "Type": "String",
+      "Description": "前端静态文件在 OSS 中的目录路径"
+    },
+    "CertType": {
+      "Default": "cas",
+      "Type": "String",
+      "Description": "证书类型：cas(阿里云证书服务)/upload(上传证书)",
+      "AllowedValues": [
+        "cas",
+        "upload"
+      ]
+    },
+    "BucketName": {
+      "Default": "web-admin-prod-guangzhou",
+      "Type": "String",
+      "Description": "OSS 存储桶名称（全局唯一）"
+    },
+    "MainDomainName": {
+      "Default": "apple-app.cn",
+      "Type": "String",
+      "Description": "主域名（需已在阿里云 DNS 中添加）"
+    },
+    "PrivateKey": {
+      "Default": "",
+      "Type": "String",
+      "Description": "私钥内容（PEM 格式，certType 为 cas 时留空）"
+    },
+    "ServerCertificate": {
+      "Default": "",
+      "Type": "String",
+      "Description": "证书内容（PEM 格式，certType 为 cas 时留空）"
     }
   },
   "Outputs": {
@@ -162,19 +162,16 @@
         "Ref": "OssBucket"
       }
     },
-    "OssBucketEndpoint": {
-      "Description": "OSS 存储桶内网访问地址（用于回源配置）",
-        "Value": {
-          "Fn::GetAtt": [
-            "OssBucket",
-            "DomainName"
-          ]
-        }
-    },
     "CdnDomainName": {
       "Description": "CDN 加速域名",
       "Value": {
         "Ref": "CdnDomainName"
+      }
+    },
+    "WebsiteUrl": {
+      "Description": "前端站点访问地址",
+      "Value": {
+        "Fn::Sub": "https://${SubDomainName}.${MainDomainName}"
       }
     },
     "CdnCname": {
@@ -192,10 +189,13 @@
         "Ref": "DnsRecord"
       }
     },
-    "WebsiteUrl": {
-      "Description": "前端站点访问地址",
+    "OssBucketEndpoint": {
+      "Description": "OSS 存储桶内网访问地址（用于回源配置）",
       "Value": {
-        "Fn::Sub": "https://${SubDomainName}.${MainDomainName}"
+        "Fn::GetAtt": [
+          "OssBucket",
+          "DomainName"
+        ]
       }
     }
   }
