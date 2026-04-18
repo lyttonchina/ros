@@ -16,7 +16,11 @@
         "BucketName": {
           "Ref": "BucketName"
         },
-        "RedundancyType": "LRS"
+        "RedundancyType": "LRS",
+        "WebsiteConfiguration": {
+          "IndexDocument": "index.html",
+          "ErrorDocument": "index.html"
+        }
       }
     },
     "DnsRecord": {
@@ -49,10 +53,7 @@
             "[{\"content\":\"${content}\", \"type\":\"oss\", \"priority\":\"20\", \"port\":80}]",
             {
               "content": {
-                "Fn::GetAtt": [
-                  "OssBucket",
-                  "DomainName"
-                ]
+                "Fn::Sub": "${BucketName}.oss-${ALIYUN::Region}.aliyuncs.com"
               }
             }
           ]
@@ -98,7 +99,7 @@
       ]
     }
   },
-  "Description": "Web Admin 前端静态资源部署：OSS + CDN + DNS",
+  "Description": "Web Admin 前端静态资源部署：OSS + CDN + DNS。支持 SPA 路由（所有 404 请求会 fallback 到 index.html）",
   "Parameters": {
     "CertId": {
       "Default": "24508261",
@@ -174,6 +175,12 @@
         "Fn::Sub": "https://${SubDomainName}.${MainDomainName}"
       }
     },
+    "OssStaticWebsiteUrl": {
+      "Description": "OSS 静态网站访问地址（用于验证 OSS 层 SPA fallback 配置）",
+      "Value": {
+        "Fn::Sub": "http://${BucketName}.oss-${ALIYUN::Region}.aliyuncs.com"
+      }
+    },
     "CdnCname": {
       "Description": "CDN CNAME 值（需在 DNS 中配置）",
       "Value": {
@@ -190,12 +197,9 @@
       }
     },
     "OssBucketEndpoint": {
-      "Description": "OSS 存储桶内网访问地址（用于回源配置）",
+      "Description": "OSS 存储桶静态网站访问地址（用于 CDN 回源）",
       "Value": {
-        "Fn::GetAtt": [
-          "OssBucket",
-          "DomainName"
-        ]
+        "Fn::Sub": "${ALIYUN::Region}.aliyuncs.com"
       }
     }
   }
