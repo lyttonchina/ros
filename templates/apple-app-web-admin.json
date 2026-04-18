@@ -136,7 +136,7 @@
       ]
     },
     "BucketName": {
-      "Default": "web-admin-prod-guangzhou",
+      "Default": "web-admin-prod-gz",
       "Type": "String",
       "Description": "OSS 存储桶名称（全局唯一）"
     },
