@@ -1,7 +1,7 @@
 {
   "template-file-path": "templates/apple-app-web-admin.json",
   "parameters": {
-    "web-admin-prod-gzName": "web-admin-prod-gz",
+    "BucketName": "web-admin-prod-gz",
     "CdnDomainName": "admin.apple-app.cn",
     "SubDomainName": "admin",
     "MainDomainName": "apple-app.cn",
