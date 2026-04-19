@@ -28,9 +28,6 @@
         "SecretType": "Opaque",
         "SecretData": {
           "DB_PASSWORD": "sample"
-        },
-        "Name": {
-          "Fn::Sub": "${ALIYUN::StackName}_secret_db_password"
         }
       }
     },
@@ -49,9 +46,6 @@
         "SecretType": "Opaque",
         "SecretData": {
           "REDIS_PASSWORD": "sample"
-        },
-        "Name": {
-          "Fn::Sub": "${ALIYUN::StackName}_secret_redis_password"
         }
       }
     },
@@ -64,9 +58,6 @@
           }
         ],
         "Description": {
-          "Fn::Sub": "${ALIYUN::StackName}_ingress"
-        },
-        "IngressName": {
           "Fn::Sub": "${ALIYUN::StackName}_ingress"
         },
         "Rules": [
@@ -150,7 +141,7 @@
           ]
         },
         "AppName": {
-          "Fn::Sub": "${ALIYUN::StackName}_app"
+          "Ref": "ALIYUN::StackName"
         },
         "NamespaceId": {
           "Fn::GetAtt": [
@@ -256,9 +247,6 @@
         ],
         "ListenerProtocol": "HTTP",
         "ListenerPort": 80,
-        "ListenerName": {
-          "Fn::Sub": "${ALIYUN::StackName}_http_listener"
-        },
         "LoadBalancerId": {
           "Ref": "AlbInstance"
         }
@@ -375,7 +363,7 @@
           }
         },
         "ScalingRuleName": {
-          "Fn::Sub": "${ALIYUN::StackName}_scaling_rule"
+          "Fn::Sub": "${ALIYUN::StackName}-scaling-rule"
         },
         "ScalingRuleEnable": true,
         "ScalingRuleType": "metric",
