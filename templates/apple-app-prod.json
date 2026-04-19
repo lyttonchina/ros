@@ -365,7 +365,7 @@
             "Step": "1",
             "StabilizationWindowSeconds": 60
           },
-          "MaxReplicas": 10,
+          "MaxReplicas": 20,
           "ScaleDownRules": {
             "Disabled": false,
             "Step": "1",
