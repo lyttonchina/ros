@@ -64,7 +64,17 @@
           {
             "Path": "/*",
             "Domain": {
-              "Fn::Sub": "${ALIYUN::StackName}.apple-app.cn"
+              "Fn::Join": [
+                ".",
+                [
+                  {
+                    "Ref": "DomainPrefix"
+                  },
+                  {
+                    "Ref": "RootDomain"
+                  }
+                ]
+              ]
             },
             "BackendProtocol": "http",
             "ContainerPort": 8080,
@@ -385,9 +395,11 @@
           ]
         },
         "RR": {
-          "Fn::Sub": "${ALIYUN::StackName}"
+          "Ref": "DomainPrefix"
         },
-        "DomainName": "apple-app.cn"
+        "DomainName": {
+          "Ref": "RootDomain"
+        },
       }
     }
   },
@@ -422,6 +434,16 @@
       "Default": 300,
       "Type": "Number",
       "Description": "健康检查初始延迟秒数（initialDelaySeconds），应用启动后等待这么久才开始健康检查。建议设为应用实际启动时间的 1.2~1.5 倍"
+    },
+    "DomainPrefix": {
+      "Default": "api-prod",
+      "Type": "String",
+      "Description": "域名前缀，如 api-prod 将组成 api-prod.apple-app.cn"
+    },
+    "RootDomain": {
+      "Default": "apple-app.cn",
+      "Type": "String",
+      "Description": "根域名，如 apple-app.cn"
     }
   },
   "Outputs": {
