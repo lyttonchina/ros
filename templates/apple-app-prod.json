@@ -23,7 +23,7 @@
           ]
         },
         "SecretName": {
-          "Fn::Sub": "${ALIYUN::StackName}_db_password"
+          "Fn::Sub": "${AppName}-db-password"
         },
         "SecretType": "Opaque",
         "SecretData": {
@@ -41,7 +41,7 @@
           ]
         },
         "SecretName": {
-          "Fn::Sub": "${ALIYUN::StackName}_redis_password"
+          "Fn::Sub": "${AppName}-redis-password"
         },
         "SecretType": "Opaque",
         "SecretData": {
