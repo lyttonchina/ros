@@ -58,7 +58,7 @@
           }
         ],
         "Description": {
-          "Fn::Sub": "${ALIYUN::StackName}_ingress"
+          "Ref": "AppName"
         },
         "Rules": [
           {
@@ -141,7 +141,7 @@
           ]
         },
         "AppName": {
-          "Ref": "ALIYUN::StackName"
+          "Ref": "AppName"
         },
         "NamespaceId": {
           "Fn::GetAtt": [
@@ -363,7 +363,7 @@
           }
         },
         "ScalingRuleName": {
-          "Fn::Sub": "${ALIYUN::StackName}-scaling-rule"
+          "Fn::Sub": "${AppName}-scaling-rule"
         },
         "ScalingRuleEnable": true,
         "ScalingRuleType": "metric",
