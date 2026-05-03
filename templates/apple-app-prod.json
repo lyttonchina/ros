@@ -133,7 +133,7 @@
         "Replicas": 1,
         "Envs": {
           "Fn::Sub": [
-            "[{\"name\":\"JAVA_OPTS\",\"value\":\"-Dserver.port=8080\"},{\"name\":\"DB_PASSWORD\",\"valueFrom\":{\"secretRef\":{\"secretId\":${DB_PASSWORD_SECRET_ID},\"key\":\"DB_PASSWORD\"}}},{\"name\":\"REDIS_PASSWORD\",\"valueFrom\":{\"secretRef\":{\"secretId\":${REDIS_PASSWORD_SECRET_ID},\"key\":\"REDIS_PASSWORD\"}}}]",
+            "[{\"name\":\"JAVA_OPTS\",\"value\":\"-Dserver.port=8080 -Duser.timezone=UTC\"},{\"name\":\"DB_PASSWORD\",\"valueFrom\":{\"secretRef\":{\"secretId\":${DB_PASSWORD_SECRET_ID},\"key\":\"DB_PASSWORD\"}}},{\"name\":\"REDIS_PASSWORD\",\"valueFrom\":{\"secretRef\":{\"secretId\":${REDIS_PASSWORD_SECRET_ID},\"key\":\"REDIS_PASSWORD\"}}}]",
             {
               "DB_PASSWORD_SECRET_ID": {
                 "Fn::GetAtt": [
