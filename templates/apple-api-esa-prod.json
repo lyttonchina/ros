@@ -1,0 +1,596 @@
+{
+  "ROSTemplateFormatVersion": "2015-09-01",
+  "Description": "ESA + SAE architecture: ESA handles HTTPS + WAF + DDoS (default), forwards to ALB (internal HTTP), then to SAE",
+  "Parameters": {
+    "PackageUrl": {
+      "Default": "https://my-java-app-bucket.oss-us-east-1.aliyuncs.com/releases/hello-world-1.0-SNAPSHOT.jar",
+      "Type": "String",
+      "Description": "JAR Package OSS URL"
+    },
+    "AppName": {
+      "Default": "apple-api-prod",
+      "Type": "String",
+      "Description": "SAE Application Name"
+    },
+    "HealthCheckPath": {
+      "Default": "/api/health",
+      "Type": "String",
+      "Description": "Health Check Path"
+    },
+    "NamespaceId": {
+      "Default": "us-east-1",
+      "Type": "String",
+      "Description": "SAE namespace logical ID only; stack region is prefixed automatically"
+    },
+    "HealthCheckInitialDelay": {
+      "Default": 300,
+      "Type": "Number",
+      "Description": "健康检查初始延迟秒数（initialDelaySeconds），应用启动后等待这么久才开始健康检查。建议设为应用实际启动时间的 1.2~1.5 倍"
+    },
+    "DomainPrefix": {
+      "Default": "apple-api-esa-prod",
+      "Type": "String",
+      "Description": "域名前缀，如 apple-api-esa-prod 将组成 apple-api-esa-prod.apple-app.cn"
+    },
+    "RootDomain": {
+      "Default": "apple-app.cn",
+      "Type": "String",
+      "Description": "根域名，如 apple-app.cn"
+    },
+    "EsaCoverage": {
+      "Default": "global",
+      "Type": "String",
+      "Description": "ESA 加速区域：global(全球)/domestic(仅中国大陆)/overseas(海外不含中国大陆)",
+      "AllowedValues": [
+        "global",
+        "domestic",
+        "overseas"
+      ]
+    },
+    "AlbAddressType": {
+      "Default": "Internet",
+      "Type": "String",
+      "Description": "ALB 地址类型：Internet(公网)/Intranet(私网)。ESA 回源到 ALB 建议使用公网 ALB",
+      "AllowedValues": [
+        "Internet",
+        "Intranet"
+      ]
+    },
+    "EsaCnameZone": {
+      "Default": "",
+      "Type": "String",
+      "Description": "ESA 站点 CNAME 目标值。创建 ESA Site 后在控制台获取，格式如 xxx.esa.alicloud.com。填入后模板将自动在阿里云 DNS 配置 CNAME 记录"
+    },
+    "DnsTTL": {
+      "Default": 600,
+      "Type": "Number",
+      "Description": "DNS CNAME 记录的 TTL（秒）"
+    }
+  },
+  "Resources": {
+    "SaeNamespace": {
+      "Type": "ALIYUN::SAE::Namespace",
+      "Properties": {
+        "NamespaceName": {
+          "Fn::Sub": "${ALIYUN::StackName}_namespace"
+        },
+        "NamespaceId": {
+          "Fn::Sub": "${ALIYUN::Region}:${NamespaceId}"
+        },
+        "NamespaceDescription": "Namespace for SAE applications"
+      }
+    },
+    "SecretDB_PASSWORD": {
+      "Type": "ALIYUN::SAE::Secret",
+      "Properties": {
+        "NamespaceId": {
+          "Fn::GetAtt": [
+            "SaeNamespace",
+            "NamespaceId"
+          ]
+        },
+        "SecretName": {
+          "Fn::Sub": "${AppName}-db-password"
+        },
+        "SecretType": "Opaque",
+        "SecretData": {
+          "DB_PASSWORD": "sample"
+        }
+      }
+    },
+    "SecretREDIS_PASSWORD": {
+      "Type": "ALIYUN::SAE::Secret",
+      "Properties": {
+        "NamespaceId": {
+          "Fn::GetAtt": [
+            "SaeNamespace",
+            "NamespaceId"
+          ]
+        },
+        "SecretName": {
+          "Fn::Sub": "${AppName}-redis-password"
+        },
+        "SecretType": "Opaque",
+        "SecretData": {
+          "REDIS_PASSWORD": "sample"
+        }
+      }
+    },
+    "SaeIngress": {
+      "Type": "ALIYUN::SAE::Ingress",
+      "Properties": {
+        "CertIds": [],
+        "Description": {
+          "Ref": "AppName"
+        },
+        "Rules": [
+          {
+            "Path": "/*",
+            "Domain": {
+              "Fn::Join": [
+                ".",
+                [
+                  {
+                    "Ref": "DomainPrefix"
+                  },
+                  {
+                    "Ref": "RootDomain"
+                  }
+                ]
+              ]
+            },
+            "BackendProtocol": "http",
+            "ContainerPort": 8080,
+            "AppId": {
+              "Ref": "SaeApplication"
+            }
+          }
+        ],
+        "ListenerPort": 80,
+        "DefaultRule": {
+          "BackendProtocol": "http",
+          "ContainerPort": 8080,
+          "AppId": {
+            "Ref": "SaeApplication"
+          }
+        },
+        "ListenerProtocol": "HTTP",
+        "LoadBalanceType": "alb",
+        "SlbId": {
+          "Ref": "AlbInstance"
+        },
+        "NamespaceId": {
+          "Fn::GetAtt": [
+            "SaeNamespace",
+            "NamespaceId"
+          ]
+        }
+      },
+      "DependsOn": [
+        "AlbListener"
+      ]
+    },
+    "SecurityGroup": {
+      "Type": "ALIYUN::ECS::SecurityGroup",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "Description": "Security group for SAE instances",
+        "SecurityGroupName": {
+          "Fn::Sub": "${ALIYUN::StackName}_sg"
+        }
+      },
+      "DependsOn": [
+        "VPC"
+      ]
+    },
+    "SecurityGroupRuleIngressHttp": {
+      "Type": "ALIYUN::ECS::SecurityGroupIngress",
+      "Properties": {
+        "Description": {
+          "Fn::Sub": "${ALIYUN::StackName}_allow_80"
+        },
+        "PortRange": "80/80",
+        "SecurityGroupId": {
+          "Ref": "SecurityGroup"
+        },
+        "Priority": 1,
+        "SourceCidrIp": "0.0.0.0/0",
+        "IpProtocol": "tcp"
+      },
+      "DependsOn": [
+        "SecurityGroup"
+      ]
+    },
+    "SecurityGroupRuleIngressApp": {
+      "Type": "ALIYUN::ECS::SecurityGroupIngress",
+      "Properties": {
+        "Description": {
+          "Fn::Sub": "${ALIYUN::StackName}_allow_8080"
+        },
+        "PortRange": "8080/8080",
+        "SecurityGroupId": {
+          "Ref": "SecurityGroup"
+        },
+        "Priority": 1,
+        "SourceCidrIp": "0.0.0.0/0",
+        "IpProtocol": "tcp"
+      },
+      "DependsOn": [
+        "SecurityGroup"
+      ]
+    },
+    "SaeApplication": {
+      "Type": "ALIYUN::SAE::Application",
+      "Properties": {
+        "PackageUrl": {
+          "Ref": "PackageUrl"
+        },
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "Jdk": "Open JDK 21",
+        "Replicas": 1,
+        "Envs": {
+          "Fn::Sub": [
+            "[{\"name\":\"JAVA_OPTS\",\"value\":\"-Dserver.port=8080\"},{\"name\":\"DB_PASSWORD\",\"valueFrom\":{\"secretRef\":{\"secretId\":${DB_PASSWORD_SECRET_ID},\"key\":\"DB_PASSWORD\"}}},{\"name\":\"REDIS_PASSWORD\",\"valueFrom\":{\"secretRef\":{\"secretId\":${REDIS_PASSWORD_SECRET_ID},\"key\":\"REDIS_PASSWORD\"}}}]",
+            {
+              "DB_PASSWORD_SECRET_ID": {
+                "Fn::GetAtt": [
+                  "SecretDB_PASSWORD",
+                  "SecretId"
+                ]
+              },
+              "REDIS_PASSWORD_SECRET_ID": {
+                "Fn::GetAtt": [
+                  "SecretREDIS_PASSWORD",
+                  "SecretId"
+                ]
+              }
+            }
+          ]
+        },
+        "AppName": {
+          "Ref": "AppName"
+        },
+        "NamespaceId": {
+          "Fn::GetAtt": [
+            "SaeNamespace",
+            "NamespaceId"
+          ]
+        },
+        "Deploy": true,
+        "Readiness": {
+          "Fn::Sub": "{\"httpGet\":{\"path\":\"${HealthCheckPath}\",\"port\":8080,\"scheme\":\"HTTP\"},\"initialDelaySeconds\":${HealthCheckInitialDelay},\"timeoutSeconds\":5}"
+        },
+        "PackageType": "FatJar",
+        "VSwitchId": {
+          "Ref": "VSwitch"
+        },
+        "Memory": 4096,
+        "Timezone": "Asia/Shanghai",
+        "SecurityGroupId": {
+          "Ref": "SecurityGroup"
+        },
+        "Cpu": 2000
+      },
+      "DependsOn": [
+        "SecretDB_PASSWORD",
+        "SecretREDIS_PASSWORD"
+      ]
+    },
+    "AlbServerGroup": {
+      "Type": "ALIYUN::ALB::ServerGroup",
+      "Properties": {
+        "Protocol": "HTTP",
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "ServerGroupName": {
+          "Fn::Sub": "${ALIYUN::StackName}_server_group"
+        },
+        "StickySessionConfig": {
+          "StickySessionEnabled": false
+        },
+        "HealthCheckConfig": {
+          "HealthCheckEnabled": true,
+          "HealthCheckCodes": [
+            "http_2xx"
+          ],
+          "HealthCheckPath": "/api/health",
+          "HealthyThreshold": 3,
+          "UnhealthyThreshold": 3,
+          "HealthCheckTimeout": 5,
+          "HealthCheckInterval": 2
+        }
+      }
+    },
+    "AlbListener": {
+      "Type": "ALIYUN::ALB::Listener",
+      "Properties": {
+        "DefaultActions": [
+          {
+            "ForwardGroupConfig": {
+              "ServerGroupTuples": [
+                {
+                  "ServerGroupId": {
+                    "Ref": "AlbServerGroup"
+                  }
+                }
+              ]
+            },
+            "Type": "ForwardGroup"
+          }
+        ],
+        "ListenerProtocol": "HTTP",
+        "ListenerPort": 80,
+        "LoadBalancerId": {
+          "Ref": "AlbInstance"
+        }
+      }
+    },
+    "AlbInstance": {
+      "Type": "ALIYUN::ALB::LoadBalancer",
+      "Properties": {
+        "AddressType": {
+          "Ref": "AlbAddressType"
+        },
+        "ZoneMappings": [
+          {
+            "VSwitchId": {
+              "Ref": "VSwitch"
+            },
+            "ZoneId": "us-east-1a"
+          },
+          {
+            "VSwitchId": {
+              "Ref": "VSwitchB"
+            },
+            "ZoneId": "us-east-1b"
+          }
+        ],
+        "LoadBalancerEdition": "Basic",
+        "LoadBalancerBillingConfig": {
+          "PayType": "PostPay"
+        },
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "AddressAllocatedMode": "Fixed",
+        "LoadBalancerName": {
+          "Fn::Sub": "${ALIYUN::StackName}_alb"
+        }
+      }
+    },
+    "VPC": {
+      "Type": "ALIYUN::ECS::VPC",
+      "Properties": {
+        "VpcName": {
+          "Fn::Sub": "${ALIYUN::StackName}_vpc"
+        },
+        "CidrBlock": "172.16.0.0/16",
+        "Description": "VPC created for ESA + SAE architecture (172.16.0.0/16)"
+      }
+    },
+    "VSwitch": {
+      "Type": "ALIYUN::ECS::VSwitch",
+      "Properties": {
+        "VSwitchName": {
+          "Fn::Sub": "${ALIYUN::StackName}_vswitch"
+        },
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "CidrBlock": "10.0.1.0/24",
+        "Description": "VSwitch for SAE instances and ALB",
+        "ZoneId": "us-east-1a"
+      }
+    },
+    "VSwitchB": {
+      "Type": "ALIYUN::ECS::VSwitch",
+      "Properties": {
+        "VSwitchName": {
+          "Fn::Sub": "${ALIYUN::StackName}_b_vswitch"
+        },
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "CidrBlock": "10.0.2.0/24",
+        "Description": "VSwitch for SAE instances and ALB",
+        "ZoneId": "us-east-1b"
+      }
+    },
+    "ScalingRule": {
+      "Type": "ALIYUN::SAE::ApplicationScalingRule",
+      "Properties": {
+        "ScalingRuleMetric": {
+          "MinReplicas": 1,
+          "Metrics": [
+            {
+              "MetricTargetAverageUtilization": 85,
+              "MetricType": "CPU"
+            }
+          ],
+          "ScaleUpRules": {
+            "Disabled": false,
+            "Step": "1",
+            "StabilizationWindowSeconds": 60
+          },
+          "MaxReplicas": 10,
+          "ScaleDownRules": {
+            "Disabled": false,
+            "Step": "1",
+            "StabilizationWindowSeconds": 300
+          }
+        },
+        "ScalingRuleName": {
+          "Fn::Sub": "${AppName}-scaling-rule"
+        },
+        "ScalingRuleEnable": true,
+        "ScalingRuleType": "metric",
+        "AppId": {
+          "Ref": "SaeApplication"
+        },
+        "MinReadyInstances": 0
+      }
+    },
+    "EsaSite": {
+      "Type": "ALIYUN::ESA::Site",
+      "Properties": {
+        "SiteName": {
+          "Fn::Join": [
+            ".",
+            [
+              {
+                "Ref": "DomainPrefix"
+              },
+              {
+                "Ref": "RootDomain"
+              }
+            ]
+          ]
+        },
+        "AccessType": "CNAME",
+        "Coverage": {
+          "Ref": "EsaCoverage"
+        }
+      }
+    },
+    "EsaRecordOrigin": {
+      "Type": "ALIYUN::ESA::Record",
+      "Properties": {
+        "RecordName": "origin",
+        "RecordType": "CNAME",
+        "SiteId": {
+          "Fn::GetAtt": [
+            "EsaSite",
+            "SiteId"
+          ]
+        },
+        "Proxied": false,
+        "SourceType": "OP",
+        "BizName": "api",
+        "Data": {
+          "Value": {
+            "Fn::GetAtt": [
+              "AlbInstance",
+              "DNSName"
+            ]
+          }
+        }
+      },
+      "DependsOn": [
+        "EsaSite"
+      ]
+    },
+    "EsaHttpsConfig": {
+      "Type": "ALIYUN::ESA::HttpsBasicConfiguration",
+      "Properties": {
+        "SiteId": {
+          "Fn::GetAtt": [
+            "EsaSite",
+            "SiteId"
+          ]
+        },
+        "Https": "on",
+        "Http2": "on",
+        "Http3": "on",
+        "Tls12": "on",
+        "Tls13": "on"
+      },
+      "DependsOn": [
+        "EsaSite"
+      ]
+    },
+    "DnsRecord": {
+      "Type": "ALIYUN::DNS::DomainRecord",
+      "Properties": {
+        "TTL": {
+          "Ref": "DnsTTL"
+        },
+        "Type": "CNAME",
+        "Value": {
+          "Ref": "EsaCnameZone"
+        },
+        "RR": {
+          "Ref": "DomainPrefix"
+        },
+        "DomainName": {
+          "Ref": "RootDomain"
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "SaeNamespaceId": {
+      "Description": "SAE Namespace ID (Region:LogicalId)",
+      "Value": {
+        "Fn::GetAtt": [
+          "SaeNamespace",
+          "NamespaceId"
+        ]
+      }
+    },
+    "AlbAddress": {
+      "Description": "ALB DNS name (internal HTTP endpoint used by ESA as origin)",
+      "Value": {
+        "Fn::GetAtt": [
+          "AlbInstance",
+          "DNSName"
+        ]
+      }
+    },
+    "AlbId": {
+      "Description": "ALB instance ID",
+      "Value": {
+        "Ref": "AlbInstance"
+      }
+    },
+    "SaeApp": {
+      "Description": "SAE Application Name",
+      "Value": {
+        "Ref": "SaeApplication"
+      }
+    },
+    "VpcId": {
+      "Description": "VPC ID",
+      "Value": {
+        "Ref": "VPC"
+      }
+    },
+    "SaeIngressId": {
+      "Description": "SAE Ingress ID",
+      "Value": {
+        "Ref": "SaeIngress"
+      }
+    },
+    "EsaSiteId": {
+      "Description": "ESA Site ID",
+      "Value": {
+        "Fn::GetAtt": [
+          "EsaSite",
+          "SiteId"
+        ]
+      }
+    },
+    "EsaCname": {
+      "Description": "ESA CNAME 目标值（用户在阿里云 DNS 中配置的 CNAME 指向此值）",
+      "Value": {
+        "Ref": "EsaCnameZone"
+      }
+    },
+    "DnsRecordId": {
+      "Description": "DNS CNAME 记录 ID",
+      "Value": {
+        "Ref": "DnsRecord"
+      }
+    },
+    "WebsiteUrl": {
+      "Description": "Public API URL",
+      "Value": {
+        "Fn::Sub": "https://${DomainPrefix}.${RootDomain}"
+      }
+    }
+  }
+}

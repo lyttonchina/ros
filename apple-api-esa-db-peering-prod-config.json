@@ -1,0 +1,14 @@
+{
+  "template-file-path": "templates/apple-api-esa-db-peering-prod.json",
+  "parameters": {
+    "VpcIdProd": "待填写：apple-api-esa-prod 栈输出的 VpcId",
+    "VpcIdDb": "vpc-0xiidoexqc8nhyjhtgbhu",
+    "VpcCidrProd": "172.16.0.0/16",
+    "VpcCidrDb": "192.168.0.0/16",
+    "RouteTableIdProd": "待填写：apple-api-esa-prod 栈输出的 VPC 路由表 ID",
+    "RouteTableIdDb": "vtb-0xiik236yk8e25mb5ud6c"
+  },
+  "tags": {
+    "env": "shared"
+  }
+}

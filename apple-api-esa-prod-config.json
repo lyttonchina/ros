@@ -1,0 +1,19 @@
+{
+  "template-file-path": "templates/apple-api-esa-prod.json",
+  "parameters": {
+    "PackageUrl": "https://apple-application-bj.oss-cn-beijing.aliyuncs.com/releases/yudao-server.jar",
+    "AppName": "apple-api-prod",
+    "HealthCheckPath": "/api/health",
+    "HealthCheckInitialDelay": 300,
+    "NamespaceId": "us-east-1",
+    "DomainPrefix": "apple-api-esa-prod",
+    "RootDomain": "apple-app.cn",
+    "EsaCoverage": "global",
+    "AlbAddressType": "Internet",
+    "DnsTTL": 600
+  },
+  "tags": {
+    "env": "prod",
+    "arch": "esa-sae"
+  }
+}
