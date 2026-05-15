@@ -65,6 +65,11 @@
       "Default": 600,
       "Type": "Number",
       "Description": "DNS CNAME 记录的 TTL（秒）"
+    },
+    "EsaInstanceId": {
+      "Default": "",
+      "Type": "String",
+      "Description": "ESA 实例 ID，必填。可在 ESA 控制台 → 实例管理 中获取，格式如 esa-premium-xxxxx"
     }
   },
   "Resources": {
@@ -119,7 +124,6 @@
     "SaeIngress": {
       "Type": "ALIYUN::SAE::Ingress",
       "Properties": {
-        "CertIds": [],
         "Description": {
           "Ref": "AppName"
         },
@@ -438,6 +442,9 @@
     "EsaSite": {
       "Type": "ALIYUN::ESA::Site",
       "Properties": {
+        "InstanceId": {
+          "Ref": "EsaInstanceId"
+        },
         "SiteName": {
           "Fn::Join": [
             ".",

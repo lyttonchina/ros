@@ -10,7 +10,9 @@
     "RootDomain": "apple-app.cn",
     "EsaCoverage": "global",
     "AlbAddressType": "Internet",
-    "DnsTTL": 600
+    "DnsTTL": 600,
+    "EsaInstanceId": "待填写：在 ESA 控制台 → 实例管理 获取",
+    "EsaCnameZone": "待填写：在 ESA 控制台创建 Site 后获取，格式如 xxx.esa.alicloud.com"
   },
   "tags": {
     "env": "prod",
