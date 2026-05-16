@@ -1,5 +1,5 @@
 {
-  "template-file-path": "templates/apple-api-esa-prod.json",
+  "template-file-path": "templates/apple-api-sae-nlb-prod.json",
   "parameters": {
     "PackageUrl": "https://my-java-app-bucket.oss-us-east-1.aliyuncs.com/releases/hello-world-1.0-SNAPSHOT.jar",
     "AppName": "apple-api-prod",
