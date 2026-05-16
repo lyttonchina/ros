@@ -5,7 +5,7 @@
       "record_name": "apple-api-esa-prod",
       "accelerate_domain": "apple-api-esa-prod.apple-app.cn",
       "nlb_dns_name": "nlb-fgk9kda9b1ea1m6ksu.us-east-1.nlb.aliyunsslbtintl.com",
-      "stack_name": "",
+      "stack_name": "stack_esa_prod",
       "tags": {
         "env": "prod",
         "arch": "esa"
