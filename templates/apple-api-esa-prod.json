@@ -183,7 +183,7 @@
         "VpcName": {
           "Fn::Sub": "${ALIYUN::StackName}_vpc"
         },
-        "CidrBlock": "10.0.0.0/16",
+        "CidrBlock": "172.16.0.0/16",
         "Description": "VPC created by ROS for SAE"
       }
     },
@@ -196,7 +196,7 @@
         "VpcId": {
           "Ref": "VPC"
         },
-        "CidrBlock": "10.0.1.0/24",
+        "CidrBlock": "172.16.1.0/24",
         "Description": "VSwitch for SAE instances",
         "ZoneId": "us-east-1a"
       }
@@ -210,7 +210,7 @@
         "VpcId": {
           "Ref": "VPC"
         },
-        "CidrBlock": "10.0.2.0/24",
+        "CidrBlock": "172.16.2.0/24",
         "Description": "VSwitch for SAE instances",
         "ZoneId": "us-east-1b"
       }
