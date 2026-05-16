@@ -1,5 +1,5 @@
 {
-    "template-file-path": "terraform/",
+    "template-file-path": ".",
     "variables": {
       "site_id": 156759048689904,
       "record_name": "apple-api-esa-prod",
