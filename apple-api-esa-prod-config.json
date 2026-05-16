@@ -5,7 +5,7 @@
     "AppName": "apple-api-prod",
     "HealthCheckPath": "/api/health",
     "HealthCheckInitialDelay": 300,
-    "NamespaceId": "us-east-1",
+    "NamespaceId": "apple-api-prod",
     "DomainPrefix": "apple-api-esa-prod",
     "RootDomain": "apple-app.cn"
   },
