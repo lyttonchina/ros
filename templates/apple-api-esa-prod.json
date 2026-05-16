@@ -201,6 +201,125 @@
         "ZoneId": "us-east-1a"
       }
     },
+    "VSwitchB": {
+      "Type": "ALIYUN::ECS::VSwitch",
+      "Properties": {
+        "VSwitchName": {
+          "Fn::Sub": "${ALIYUN::StackName}_b_vswitch"
+        },
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "CidrBlock": "10.0.2.0/24",
+        "Description": "VSwitch for SAE instances",
+        "ZoneId": "us-east-1b"
+      }
+    },
+    "NlbServerGroup": {
+      "Type": "ALIYUN::NLB::ServerGroup",
+      "Properties": {
+        "Protocol": "TCP",
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "ServerGroupName": {
+          "Fn::Sub": "${ALIYUN::StackName}_server_group"
+        },
+        "HealthCheckConfig": {
+          "HealthCheckEnabled": true,
+          "HealthyThreshold": 3,
+          "UnhealthyThreshold": 3,
+          "HealthCheckConnectTimeout": 5,
+          "HealthCheckInterval": 2
+        },
+        "Scheduler": "Wrr"
+      }
+    },
+    "NlbListener": {
+      "Type": "ALIYUN::NLB::Listener",
+      "Properties": {
+        "ServerGroupId": {
+          "Ref": "NlbServerGroup"
+        },
+        "ListenerProtocol": "TCP",
+        "ListenerPort": 8080,
+        "LoadBalancerId": {
+          "Ref": "NlbInstance"
+        }
+      },
+      "DependsOn": ["NlbInstance"]
+    },
+    "NlbInstance": {
+      "Type": "ALIYUN::NLB::LoadBalancer",
+      "Properties": {
+        "LoadBalancerName": {
+          "Fn::Sub": "${ALIYUN::StackName}_nlb"
+        },
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "ZoneMappings": [
+          {
+            "VSwitchId": {
+              "Ref": "VSwitch"
+            },
+            "ZoneId": "us-east-1a"
+          },
+          {
+            "VSwitchId": {
+              "Ref": "VSwitchB"
+            },
+            "ZoneId": "us-east-1b"
+          }
+        ],
+        "LoadBalancerBillingConfig": {
+          "PayType": "PostPay"
+        },
+        "AddressType": "Internet"
+      }
+    },
+    "SaeIngress": {
+      "Type": "ALIYUN::SAE::Ingress",
+      "Properties": {
+        "Description": {
+          "Ref": "AppName"
+        },
+        "Rules": [
+          {
+            "Path": "/*",
+            "Domain": "*",
+            "BackendProtocol": "http",
+            "ContainerPort": 8080,
+            "AppId": {
+              "Ref": "SaeApplication"
+            }
+          }
+        ],
+        "ListenerPort": 8080,
+        "DefaultRule": {
+          "BackendProtocol": "http",
+          "ContainerPort": 8080,
+          "AppId": {
+            "Ref": "SaeApplication"
+          }
+        },
+        "ListenerProtocol": "HTTP",
+        "LoadBalanceType": "nlb",
+        "SlbId": {
+          "Ref": "NlbInstance"
+        },
+        "NamespaceId": {
+          "Fn::GetAtt": [
+            "SaeNamespace",
+            "NamespaceId"
+          ]
+        }
+      },
+      "DependsOn": [
+        "NlbListener",
+        "NlbServerGroup"
+      ]
+    },
     "ScalingRule": {
       "Type": "ALIYUN::SAE::ApplicationScalingRule",
       "Properties": {
@@ -284,6 +403,27 @@
       "Description": "VPC ID",
       "Value": {
         "Ref": "VPC"
+      }
+    },
+    "NlbDNSName": {
+      "Description": "NLB DNS name (use this as the DNS target)",
+      "Value": {
+        "Fn::GetAtt": [
+          "NlbInstance",
+          "DNSName"
+        ]
+      }
+    },
+    "NlbId": {
+      "Description": "NLB instance ID",
+      "Value": {
+        "Ref": "NlbInstance"
+      }
+    },
+    "SaeIngressId": {
+      "Description": "SAE Ingress ID",
+      "Value": {
+        "Ref": "SaeIngress"
       }
     }
   }
