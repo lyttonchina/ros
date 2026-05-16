@@ -1,67 +1,5 @@
 {
   "ROSTemplateFormatVersion": "2015-09-01",
-  "Description": "ESA + SAE architecture: ESA handles HTTPS + WAF + DDoS (NS mode, default), forwards to ALB (internal HTTP), then to SAE",
-  "Parameters": {
-    "PackageUrl": {
-      "Default": "https://my-java-app-bucket.oss-us-east-1.aliyuncs.com/releases/hello-world-1.0-SNAPSHOT.jar",
-      "Type": "String",
-      "Description": "JAR Package OSS URL"
-    },
-    "AppName": {
-      "Default": "apple-api-prod",
-      "Type": "String",
-      "Description": "SAE Application Name"
-    },
-    "HealthCheckPath": {
-      "Default": "/api/health",
-      "Type": "String",
-      "Description": "Health Check Path"
-    },
-    "NamespaceId": {
-      "Default": "us-east-1",
-      "Type": "String",
-      "Description": "SAE namespace logical ID only; stack region is prefixed automatically"
-    },
-    "HealthCheckInitialDelay": {
-      "Default": 300,
-      "Type": "Number",
-      "Description": "健康检查初始延迟秒数（initialDelaySeconds），应用启动后等待这么久才开始健康检查。建议设为应用实际启动时间的 1.2~1.5 倍"
-    },
-    "DomainPrefix": {
-      "Default": "apple-api-esa-prod",
-      "Type": "String",
-      "Description": "域名前缀，如 apple-api-esa-prod 将组成 apple-api-esa-prod.apple-app.cn"
-    },
-    "RootDomain": {
-      "Default": "apple-app.cn",
-      "Type": "String",
-      "Description": "根域名，如 apple-app.cn"
-    },
-    "EsaCoverage": {
-      "Default": "global",
-      "Type": "String",
-      "Description": "ESA 加速区域：global(全球)/domestic(仅中国大陆)/overseas(海外不含中国大陆)",
-      "AllowedValues": [
-        "global",
-        "domestic",
-        "overseas"
-      ]
-    },
-    "AlbAddressType": {
-      "Default": "Internet",
-      "Type": "String",
-      "Description": "ALB 地址类型：Internet(公网)/Intranet(私网)。ESA 回源到 ALB 建议使用公网 ALB",
-      "AllowedValues": [
-        "Internet",
-        "Intranet"
-      ]
-    },
-    "EsaInstanceId": {
-      "Default": "",
-      "Type": "String",
-      "Description": "ESA 实例 ID，免费版可填 esa-free 或从 ESA 控制台 → 实例管理 获取"
-    }
-  },
   "Resources": {
     "SaeNamespace": {
       "Type": "ALIYUN::SAE::Namespace",
@@ -159,25 +97,7 @@
             "NamespaceId"
           ]
         }
-      },
-      "DependsOn": [
-        "AlbListener"
-      ]
-    },
-    "SecurityGroup": {
-      "Type": "ALIYUN::ECS::SecurityGroup",
-      "Properties": {
-        "VpcId": {
-          "Ref": "VPC"
-        },
-        "Description": "Security group for SAE instances",
-        "SecurityGroupName": {
-          "Fn::Sub": "${ALIYUN::StackName}_sg"
-        }
-      },
-      "DependsOn": [
-        "VPC"
-      ]
+      }
     },
     "SecurityGroupRuleIngressHttp": {
       "Type": "ALIYUN::ECS::SecurityGroupIngress",
@@ -186,24 +106,6 @@
           "Fn::Sub": "${ALIYUN::StackName}_allow_80"
         },
         "PortRange": "80/80",
-        "SecurityGroupId": {
-          "Ref": "SecurityGroup"
-        },
-        "Priority": 1,
-        "SourceCidrIp": "0.0.0.0/0",
-        "IpProtocol": "tcp"
-      },
-      "DependsOn": [
-        "SecurityGroup"
-      ]
-    },
-    "SecurityGroupRuleIngressApp": {
-      "Type": "ALIYUN::ECS::SecurityGroupIngress",
-      "Properties": {
-        "Description": {
-          "Fn::Sub": "${ALIYUN::StackName}_allow_8080"
-        },
-        "PortRange": "8080/8080",
         "SecurityGroupId": {
           "Ref": "SecurityGroup"
         },
@@ -228,7 +130,7 @@
         "Replicas": 1,
         "Envs": {
           "Fn::Sub": [
-            "[{\"name\":\"JAVA_OPTS\",\"value\":\"-Dserver.port=8080\"},{\"name\":\"DB_PASSWORD\",\"valueFrom\":{\"secretRef\":{\"secretId\":${DB_PASSWORD_SECRET_ID},\"key\":\"DB_PASSWORD\"}}},{\"name\":\"REDIS_PASSWORD\",\"valueFrom\":{\"secretRef\":{\"secretId\":${REDIS_PASSWORD_SECRET_ID},\"key\":\"REDIS_PASSWORD\"}}}]",
+            "[{\"name\":\"JAVA_OPTS\",\"value\":\"-Dserver.port=8080 -Duser.timezone=UTC\"},{\"name\":\"DB_PASSWORD\",\"valueFrom\":{\"secretRef\":{\"secretId\":${DB_PASSWORD_SECRET_ID},\"key\":\"DB_PASSWORD\"}}},{\"name\":\"REDIS_PASSWORD\",\"valueFrom\":{\"secretRef\":{\"secretId\":${REDIS_PASSWORD_SECRET_ID},\"key\":\"REDIS_PASSWORD\"}}}]",
             {
               "DB_PASSWORD_SECRET_ID": {
                 "Fn::GetAtt": [
@@ -274,6 +176,21 @@
         "SecretREDIS_PASSWORD"
       ]
     },
+    "SecurityGroup": {
+      "Type": "ALIYUN::ECS::SecurityGroup",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "Description": "Security group for SAE instances",
+        "SecurityGroupName": {
+          "Fn::Sub": "${ALIYUN::StackName}_sg"
+        }
+      },
+      "DependsOn": [
+        "VPC"
+      ]
+    },
     "AlbServerGroup": {
       "Type": "ALIYUN::ALB::ServerGroup",
       "Properties": {
@@ -292,7 +209,9 @@
           "HealthCheckCodes": [
             "http_2xx"
           ],
-          "HealthCheckPath": "/api/health",
+          "HealthCheckPath": {
+            "Ref": "HealthCheckPath"
+          },
           "HealthyThreshold": 3,
           "UnhealthyThreshold": 3,
           "HealthCheckTimeout": 5,
@@ -327,9 +246,7 @@
     "AlbInstance": {
       "Type": "ALIYUN::ALB::LoadBalancer",
       "Properties": {
-        "AddressType": {
-          "Ref": "AlbAddressType"
-        },
+        "AddressType": "Internet",
         "ZoneMappings": [
           {
             "VSwitchId": {
@@ -363,9 +280,27 @@
         "VpcName": {
           "Fn::Sub": "${ALIYUN::StackName}_vpc"
         },
-        "CidrBlock": "172.16.0.0/16",
-        "Description": "VPC created for ESA + SAE architecture (172.16.0.0/16)"
+        "CidrBlock": "10.0.0.0/16",
+        "Description": "VPC created by ROS for ALB + SAE architecture"
       }
+    },
+    "SecurityGroupRuleIngressApp": {
+      "Type": "ALIYUN::ECS::SecurityGroupIngress",
+      "Properties": {
+        "Description": {
+          "Fn::Sub": "${ALIYUN::StackName}_allow_8080"
+        },
+        "PortRange": "8080/8080",
+        "SecurityGroupId": {
+          "Ref": "SecurityGroup"
+        },
+        "Priority": 1,
+        "SourceCidrIp": "0.0.0.0/0",
+        "IpProtocol": "tcp"
+      },
+      "DependsOn": [
+        "SecurityGroup"
+      ]
     },
     "VSwitch": {
       "Type": "ALIYUN::ECS::VSwitch",
@@ -429,77 +364,63 @@
         "MinReadyInstances": 0
       }
     },
-    "EsaSite": {
-      "Type": "ALIYUN::ESA::Site",
+    "DnsRecord": {
+      "Type": "ALIYUN::DNS::DomainRecord",
       "Properties": {
-        "InstanceId": {
-          "Ref": "EsaInstanceId"
-        },
-        "SiteName": {
-          "Fn::Join": [
-            ".",
-            [
-              {
-                "Ref": "DomainPrefix"
-              },
-              {
-                "Ref": "RootDomain"
-              }
-            ]
+        "TTL": 600,
+        "Type": "CNAME",
+        "Value": {
+          "Fn::GetAtt": [
+            "AlbInstance",
+            "DNSName"
           ]
         },
-        "AccessType": "NS",
-        "Coverage": {
-          "Ref": "EsaCoverage"
+        "RR": {
+          "Ref": "DomainPrefix"
+        },
+        "DomainName": {
+          "Ref": "RootDomain"
         }
       }
+    }
+  },
+  "Description": "ALB + SAE architecture deployment by ROS",
+  "Parameters": {
+    "PackageUrl": {
+      "Default": "https://my-java-app-bucket.oss-us-east-1.aliyuncs.com/releases/hello-world-1.0-SNAPSHOT.jar",
+      "Type": "String",
+      "Description": "JAR Package OSS URL"
     },
-    "EsaRecordOrigin": {
-      "Type": "ALIYUN::ESA::Record",
-      "Properties": {
-        "RecordName": "origin",
-        "RecordType": "CNAME",
-        "SiteId": {
-          "Fn::GetAtt": [
-            "EsaSite",
-            "SiteId"
-          ]
-        },
-        "Proxied": false,
-        "SourceType": "OP",
-        "BizName": "api",
-        "Data": {
-          "Value": {
-            "Fn::GetAtt": [
-              "AlbInstance",
-              "DNSName"
-            ]
-          }
-        }
-      },
-      "DependsOn": [
-        "EsaSite"
-      ]
+    "AppName": {
+      "Default": "apple-api-prod",
+      "Type": "String",
+      "Description": "SAE Application Name"
     },
-    "EsaHttpsConfig": {
-      "Type": "ALIYUN::ESA::HttpsBasicConfiguration",
-      "Properties": {
-        "SiteId": {
-          "Fn::GetAtt": [
-            "EsaSite",
-            "SiteId"
-          ]
-        },
-        "Https": "on",
-        "Http2": "on",
-        "Http3": "on",
-        "Tls12": "on",
-        "Tls13": "on"
-      },
-      "DependsOn": [
-        "EsaSite"
-      ]
+    "HealthCheckPath": {
+      "Default": "/api/health",
+      "Type": "String",
+      "Description": "Health Check Path"
     },
+    "NamespaceId": {
+      "Default": "us-east-1",
+      "Type": "String",
+      "Description": "SAE namespace logical ID only; stack region is prefixed automatically"
+    },
+    "HealthCheckInitialDelay": {
+      "Default": 300,
+      "Type": "Number",
+      "Description": "健康检查初始延迟秒数（initialDelaySeconds），应用启动后等待这么久才开始健康检查。建议设为应用实际启动时间的 1.2~1.5 倍"
+    },
+    "DomainPrefix": {
+      "Default": "api-prod",
+      "Type": "String",
+      "Description": "域名前缀，如 api-prod 将组成 api-prod.apple-app.cn"
+    },
+    "RootDomain": {
+      "Default": "apple-app.cn",
+      "Type": "String",
+      "Description": "根域名，如 apple-app.cn"
+    }
   },
   "Outputs": {
     "SaeNamespaceId": {
@@ -512,7 +433,7 @@
       }
     },
     "AlbAddress": {
-      "Description": "ALB DNS name (internal HTTP endpoint used by ESA as origin)",
+      "Description": "ALB public address",
       "Value": {
         "Fn::GetAtt": [
           "AlbInstance",
@@ -542,38 +463,6 @@
       "Description": "SAE Ingress ID",
       "Value": {
         "Ref": "SaeIngress"
-      }
-    },
-    "EsaSiteId": {
-      "Description": "ESA Site ID",
-      "Value": {
-        "Fn::GetAtt": [
-          "EsaSite",
-          "SiteId"
-        ]
-      }
-    },
-    "EsaCname": {
-      "Description": "ESA CNAME 目标值（NS 模式无需此值，参见 NameServerList）",
-      "Value": "N/A"
-    },
-    "DnsRecordId": {
-      "Description": "DNS CNAME 记录 ID（NS 模式无需配置）",
-      "Value": "N/A"
-    },
-    "NameServerList": {
-      "Description": "ESA NS 服务器列表（NS 模式需要将此 NS 配置到域名注册商）",
-      "Value": {
-        "Fn::GetAtt": [
-          "EsaSite",
-          "NameServerList"
-        ]
-      }
-    },
-    "WebsiteUrl": {
-      "Description": "Public API URL",
-      "Value": {
-        "Fn::Sub": "https://${DomainPrefix}.${RootDomain}"
       }
     }
   }

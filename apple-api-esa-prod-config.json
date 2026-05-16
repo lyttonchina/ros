@@ -5,15 +5,12 @@
     "AppName": "apple-api-prod",
     "HealthCheckPath": "/api/health",
     "HealthCheckInitialDelay": 300,
-    "NamespaceId": "us-east-1-esa-prod",
+    "NamespaceId": "us-east-1",
     "DomainPrefix": "apple-api-esa-prod",
-    "RootDomain": "apple-app.cn",
-    "EsaCoverage": "global",
-    "AlbAddressType": "Internet",
-    "EsaInstanceId": "esa-site-bfmsp3aolibk"
+    "RootDomain": "apple-app.cn"
   },
   "tags": {
     "env": "prod",
-    "arch": "esa-sae"
+    "arch": "sae"
   }
 }
