@@ -49,74 +49,6 @@
         }
       }
     },
-    "SaeIngress": {
-      "Type": "ALIYUN::SAE::Ingress",
-      "Properties": {
-        "Description": {
-          "Ref": "AppName"
-        },
-        "Rules": [
-          {
-            "Path": "/*",
-            "Domain": {
-              "Fn::Join": [
-                ".",
-                [
-                  {
-                    "Ref": "DomainPrefix"
-                  },
-                  {
-                    "Ref": "RootDomain"
-                  }
-                ]
-              ]
-            },
-            "BackendProtocol": "http",
-            "ContainerPort": 8080,
-            "AppId": {
-              "Ref": "SaeApplication"
-            }
-          }
-        ],
-        "ListenerPort": 80,
-        "DefaultRule": {
-          "BackendProtocol": "http",
-          "ContainerPort": 8080,
-          "AppId": {
-            "Ref": "SaeApplication"
-          }
-        },
-        "ListenerProtocol": "HTTP",
-        "LoadBalanceType": "alb",
-        "SlbId": {
-          "Ref": "AlbInstance"
-        },
-        "NamespaceId": {
-          "Fn::GetAtt": [
-            "SaeNamespace",
-            "NamespaceId"
-          ]
-        }
-      }
-    },
-    "SecurityGroupRuleIngressHttp": {
-      "Type": "ALIYUN::ECS::SecurityGroupIngress",
-      "Properties": {
-        "Description": {
-          "Fn::Sub": "${ALIYUN::StackName}_allow_80"
-        },
-        "PortRange": "80/80",
-        "SecurityGroupId": {
-          "Ref": "SecurityGroup"
-        },
-        "Priority": 1,
-        "SourceCidrIp": "0.0.0.0/0",
-        "IpProtocol": "tcp"
-      },
-      "DependsOn": [
-        "SecurityGroup"
-      ]
-    },
     "SaeApplication": {
       "Type": "ALIYUN::SAE::Application",
       "Properties": {
@@ -191,98 +123,23 @@
         "VPC"
       ]
     },
-    "AlbServerGroup": {
-      "Type": "ALIYUN::ALB::ServerGroup",
+    "SecurityGroupRuleIngressHttp": {
+      "Type": "ALIYUN::ECS::SecurityGroupIngress",
       "Properties": {
-        "Protocol": "HTTP",
-        "VpcId": {
-          "Ref": "VPC"
+        "Description": {
+          "Fn::Sub": "${ALIYUN::StackName}_allow_80"
         },
-        "ServerGroupName": {
-          "Fn::Sub": "${ALIYUN::StackName}_server_group"
+        "PortRange": "80/80",
+        "SecurityGroupId": {
+          "Ref": "SecurityGroup"
         },
-        "StickySessionConfig": {
-          "StickySessionEnabled": false
-        },
-        "HealthCheckConfig": {
-          "HealthCheckEnabled": true,
-          "HealthCheckCodes": [
-            "http_2xx"
-          ],
-          "HealthCheckPath": {
-            "Ref": "HealthCheckPath"
-          },
-          "HealthyThreshold": 3,
-          "UnhealthyThreshold": 3,
-          "HealthCheckTimeout": 5,
-          "HealthCheckInterval": 2
-        }
-      }
-    },
-    "AlbListener": {
-      "Type": "ALIYUN::ALB::Listener",
-      "Properties": {
-        "DefaultActions": [
-          {
-            "ForwardGroupConfig": {
-              "ServerGroupTuples": [
-                {
-                  "ServerGroupId": {
-                    "Ref": "AlbServerGroup"
-                  }
-                }
-              ]
-            },
-            "Type": "ForwardGroup"
-          }
-        ],
-        "ListenerProtocol": "HTTP",
-        "ListenerPort": 80,
-        "LoadBalancerId": {
-          "Ref": "AlbInstance"
-        }
-      }
-    },
-    "AlbInstance": {
-      "Type": "ALIYUN::ALB::LoadBalancer",
-      "Properties": {
-        "AddressType": "Internet",
-        "ZoneMappings": [
-          {
-            "VSwitchId": {
-              "Ref": "VSwitch"
-            },
-            "ZoneId": "us-east-1a"
-          },
-          {
-            "VSwitchId": {
-              "Ref": "VSwitchB"
-            },
-            "ZoneId": "us-east-1b"
-          }
-        ],
-        "LoadBalancerEdition": "Basic",
-        "LoadBalancerBillingConfig": {
-          "PayType": "PostPay"
-        },
-        "VpcId": {
-          "Ref": "VPC"
-        },
-        "AddressAllocatedMode": "Fixed",
-        "LoadBalancerName": {
-          "Fn::Sub": "${ALIYUN::StackName}_alb"
-        }
-      }
-    },
-    "VPC": {
-      "Type": "ALIYUN::ECS::VPC",
-      "Properties": {
-        "VpcName": {
-          "Fn::Sub": "${ALIYUN::StackName}_vpc"
-        },
-        "CidrBlock": "10.0.0.0/16",
-        "Description": "VPC created by ROS for ALB + SAE architecture"
-      }
+        "Priority": 1,
+        "SourceCidrIp": "0.0.0.0/0",
+        "IpProtocol": "tcp"
+      },
+      "DependsOn": [
+        "SecurityGroup"
+      ]
     },
     "SecurityGroupRuleIngressApp": {
       "Type": "ALIYUN::ECS::SecurityGroupIngress",
@@ -302,6 +159,34 @@
         "SecurityGroup"
       ]
     },
+    "SecurityGroupRuleIngressHttps": {
+      "Type": "ALIYUN::ECS::SecurityGroupIngress",
+      "Properties": {
+        "Description": {
+          "Fn::Sub": "${ALIYUN::StackName}_allow_443"
+        },
+        "PortRange": "443/443",
+        "SecurityGroupId": {
+          "Ref": "SecurityGroup"
+        },
+        "Priority": 1,
+        "SourceCidrIp": "0.0.0.0/0",
+        "IpProtocol": "tcp"
+      },
+      "DependsOn": [
+        "SecurityGroup"
+      ]
+    },
+    "VPC": {
+      "Type": "ALIYUN::ECS::VPC",
+      "Properties": {
+        "VpcName": {
+          "Fn::Sub": "${ALIYUN::StackName}_vpc"
+        },
+        "CidrBlock": "10.0.0.0/16",
+        "Description": "VPC created by ROS for SAE"
+      }
+    },
     "VSwitch": {
       "Type": "ALIYUN::ECS::VSwitch",
       "Properties": {
@@ -312,22 +197,8 @@
           "Ref": "VPC"
         },
         "CidrBlock": "10.0.1.0/24",
-        "Description": "VSwitch for SAE instances and ALB",
+        "Description": "VSwitch for SAE instances",
         "ZoneId": "us-east-1a"
-      }
-    },
-    "VSwitchB": {
-      "Type": "ALIYUN::ECS::VSwitch",
-      "Properties": {
-        "VSwitchName": {
-          "Fn::Sub": "${ALIYUN::StackName}_b_vswitch"
-        },
-        "VpcId": {
-          "Ref": "VPC"
-        },
-        "CidrBlock": "10.0.2.0/24",
-        "Description": "VSwitch for SAE instances and ALB",
-        "ZoneId": "us-east-1b"
       }
     },
     "ScalingRule": {
@@ -363,31 +234,12 @@
         },
         "MinReadyInstances": 0
       }
-    },
-    "DnsRecord": {
-      "Type": "ALIYUN::DNS::DomainRecord",
-      "Properties": {
-        "TTL": 600,
-        "Type": "CNAME",
-        "Value": {
-          "Fn::GetAtt": [
-            "AlbInstance",
-            "DNSName"
-          ]
-        },
-        "RR": {
-          "Ref": "DomainPrefix"
-        },
-        "DomainName": {
-          "Ref": "RootDomain"
-        }
-      }
     }
   },
-  "Description": "ALB + SAE architecture deployment by ROS",
+  "Description": "Pure SAE deployment by ROS",
   "Parameters": {
     "PackageUrl": {
-      "Default": "https://my-java-app-bucket.oss-us-east-1.aliyuncs.com/releases/hello-world-1.0-SNAPSHOT.jar",
+      "Default": "https://apple-application-bj.oss-cn-beijing.aliyuncs.com/releases/yudao-server.jar",
       "Type": "String",
       "Description": "JAR Package OSS URL"
     },
@@ -402,24 +254,14 @@
       "Description": "Health Check Path"
     },
     "NamespaceId": {
-      "Default": "us-east-1",
+      "Default": "apple-api-prod",
       "Type": "String",
-      "Description": "SAE namespace logical ID only; stack region is prefixed automatically"
+      "Description": "SAE namespace logical ID; stack region is prefixed automatically"
     },
     "HealthCheckInitialDelay": {
       "Default": 300,
       "Type": "Number",
-      "Description": "健康检查初始延迟秒数（initialDelaySeconds），应用启动后等待这么久才开始健康检查。建议设为应用实际启动时间的 1.2~1.5 倍"
-    },
-    "DomainPrefix": {
-      "Default": "api-prod",
-      "Type": "String",
-      "Description": "域名前缀，如 api-prod 将组成 api-prod.apple-app.cn"
-    },
-    "RootDomain": {
-      "Default": "apple-app.cn",
-      "Type": "String",
-      "Description": "根域名，如 apple-app.cn"
+      "Description": "Health check initial delay in seconds"
     }
   },
   "Outputs": {
@@ -432,21 +274,6 @@
         ]
       }
     },
-    "AlbAddress": {
-      "Description": "ALB public address",
-      "Value": {
-        "Fn::GetAtt": [
-          "AlbInstance",
-          "DNSName"
-        ]
-      }
-    },
-    "AlbId": {
-      "Description": "ALB instance ID",
-      "Value": {
-        "Ref": "AlbInstance"
-      }
-    },
     "SaeApp": {
       "Description": "SAE Application Name",
       "Value": {
@@ -457,12 +284,6 @@
       "Description": "VPC ID",
       "Value": {
         "Ref": "VPC"
-      }
-    },
-    "SaeIngressId": {
-      "Description": "SAE Ingress ID",
-      "Value": {
-        "Ref": "SaeIngress"
       }
     }
   }
