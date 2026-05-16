@@ -10,7 +10,7 @@
     "RootDomain": "apple-app.cn",
     "EsaCoverage": "global",
     "AlbAddressType": "Internet",
-    "EsaInstanceId": "basicplan"
+    "EsaInstanceId": "esa-site-bfmsp3aolibk"
   },
   "tags": {
     "env": "prod",
