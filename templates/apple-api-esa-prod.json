@@ -278,42 +278,22 @@
         "AddressType": "Internet"
       }
     },
-    "SaeIngress": {
-      "Type": "ALIYUN::SAE::Ingress",
+    "SaeNlbBinding": {
+      "Type": "ALIYUN::SAE::NlbBinding",
       "Properties": {
-        "Description": {
-          "Ref": "AppName"
+        "AppId": {
+          "Ref": "SaeApplication"
         },
-        "Rules": [
-          {
-            "Path": "/*",
-            "Domain": "*",
-            "BackendProtocol": "http",
-            "ContainerPort": 8080,
-            "AppId": {
-              "Ref": "SaeApplication"
-            }
-          }
-        ],
-        "ListenerPort": 8080,
-        "DefaultRule": {
-          "BackendProtocol": "http",
-          "ContainerPort": 8080,
-          "AppId": {
-            "Ref": "SaeApplication"
-          }
-        },
-        "ListenerProtocol": "HTTP",
-        "LoadBalanceType": "nlb",
-        "SlbId": {
+        "NlbId": {
           "Ref": "NlbInstance"
         },
-        "NamespaceId": {
-          "Fn::GetAtt": [
-            "SaeNamespace",
-            "NamespaceId"
-          ]
-        }
+        "Listeners": [
+          {
+            "Port": 8080,
+            "TargetPort": 8080,
+            "Protocol": "TCP"
+          }
+        ]
       },
       "DependsOn": [
         "NlbListener",
@@ -420,10 +400,13 @@
         "Ref": "NlbInstance"
       }
     },
-    "SaeIngressId": {
-      "Description": "SAE Ingress ID",
+    "SaeNlbBindingId": {
+      "Description": "SAE NLB Binding ID",
       "Value": {
-        "Ref": "SaeIngress"
+        "Fn::GetAtt": [
+          "SaeNlbBinding",
+          "NlbId"
+        ]
       }
     }
   }
