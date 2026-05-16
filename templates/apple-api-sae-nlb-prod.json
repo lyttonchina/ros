@@ -332,7 +332,10 @@
           "Ref": "SaeApplication"
         },
         "MinReadyInstances": 0
-      }
+      },
+      "DependsOn": [
+        "SaeNlbBinding"
+      ]
     }
   },
   "Description": "Pure SAE deployment by ROS",
