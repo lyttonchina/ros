@@ -338,7 +338,7 @@
   "Description": "Pure SAE deployment by ROS",
   "Parameters": {
     "PackageUrl": {
-      "Default": "https://my-java-app-bucket.oss-us-east-1.aliyuncs.com/releases/hello-world-1.0-SNAPSHOT.jar",
+      "Default": "https://apple-application-bj.oss-cn-beijing.aliyuncs.com/releases/yudao-server.jar",
       "Type": "String",
       "Description": "JAR Package OSS URL"
     },
