@@ -53,7 +53,7 @@ resource "alicloud_esa_record" "this" {
 resource "alicloud_esa_certificate" "this" {
   site_id      = var.site_id
   created_type = "free"
-  domains      = var.accelerate_domain
+  domains      = var.cert_domain
 
   depends_on = [alicloud_esa_record.this]
 }

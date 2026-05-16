@@ -3,6 +3,12 @@ variable "site_id" {
   description = "ESA 站点的 SiteId，可在 ESA 控制台 → 站点管理 → 站点信息 中查看"
 }
 
+variable "cert_domain" {
+  type        = string
+  description = "要申请的免费证书域名，支持通配符（如 *.apple-app.cn）"
+  default     = "*.apple-app.cn"
+}
+
 variable "accelerate_domain" {
   type        = string
   description = "完整的加速域名（如 api-prod.apple-app.cn），ESA 将此值作为回源 Host 头发送"
