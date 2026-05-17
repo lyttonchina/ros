@@ -1,65 +1,39 @@
 locals {
-  site_id          = "156759048689904"
-  record_name      = "apple-api-esa-prod"
+  site_id           = 156759048689904
+  record_name       = "apple-api-esa-prod"
   accelerate_domain = "apple-api-esa-prod.apple-app.cn"
-  nlb_dns_name     = "nlb-eawmxizy6mlwetlt1q.us-east-1.nlb.aliyuncsslbintl.com"
-  stack_name       = "stack_esa_prod"
-  cert_domain      = "*.apple-app.cn"
-  name_prefix      = local.stack_name != "" ? local.stack_name : local.record_name
+  nlb_dns_name      = "nlb-fgk9kda9b1ea1m6ksu.us-east-1.nlb.aliyuncsslbintl.com"
+  cert_domain       = "*.apple-app.cn"
 }
 
-resource "alicloud_esa_origin_pool" "this" {
-  origin_pool_name = "${local.name_prefix}_origin_pool"
-  site_id          = local.site_id
-  enabled          = "true"
-
-  origins {
-    type    = "ip_domain"
-    name    = "nlb-origin"
-    address = local.nlb_dns_name
-    weight  = "100"
-    enabled = "true"
-    header  = "{\"Host\":[\"${local.nlb_dns_name}\"]}"
-  }
-}
-
-resource "alicloud_esa_origin_rule" "this" {
-  site_id           = local.site_id
-  origin_scheme     = "http"
-  origin_http_port = "8080"
-  origin_https_port = "443"
-  origin_host       = local.accelerate_domain
-  origin_sni        = local.accelerate_domain
-  dns_record        = local.record_name
-  rule_enable       = "on"
-  rule              = "true"
-  rule_name         = "default-route"
-  range             = "off"
-
-  depends_on = [alicloud_esa_origin_pool.this]
-}
-
+# DNS 加速记录：对应截图1 - 创建 CNAME 记录并开启代理加速
 resource "alicloud_esa_record" "this" {
   record_name = local.record_name
   record_type = "CNAME"
   site_id     = local.site_id
   proxied     = true
   biz_name    = "api"
-  source_type = "LB"
-  host_policy = "follow_hostname"
   ttl         = 1
 
   data {
     value = local.nlb_dns_name
   }
-
-  depends_on = [alicloud_esa_origin_pool.this]
 }
 
+# 回源协议和端口：对应截图2 - 配置回源协议 HTTP 和端口 8080
+resource "alicloud_esa_origin_rule" "this" {
+  site_id          = local.site_id
+  origin_scheme    = "http"
+  origin_http_port = "8080"
+  dns_record       = local.record_name
+  rule_enable      = "on"
+  rule             = "true"
+  rule_name        = "default-route"
+}
+
+# 免费证书：对应截图3和4 - 申请免费边缘证书
 resource "alicloud_esa_certificate" "this" {
   site_id      = local.site_id
   created_type = "free"
   domains      = local.cert_domain
-
-  depends_on = [alicloud_esa_record.this]
 }

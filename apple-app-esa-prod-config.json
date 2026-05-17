@@ -1,11 +1,10 @@
 {
   "template-file-path": "templates/apple-api-esa-prod.tf",
   "parameters": {
-    "site_id": 156759048689904,
-    "record_name": "apple-api-esa-prod",
+    "site_id": "156759048689904",
     "accelerate_domain": "apple-api-esa-prod.apple-app.cn",
+    "record_name": "apple-api-esa-prod",
     "nlb_dns_name": "nlb-eawmxizy6mlwetlt1q.us-east-1.nlb.aliyuncsslbintl.com",
-    "stack_name": "stack_esa_prod",
     "cert_domain": "*.apple-app.cn",
     "tags": {
       "env": "prod",
