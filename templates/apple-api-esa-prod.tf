@@ -38,3 +38,51 @@ resource "alicloud_esa_certificate" "this" {
   created_type = "free"
   domains      = local.cert_domain
 }
+
+# WAF Ruleset:定义一个 http_ratelimit 阶段的规则集(用于频率控制)
+resource "alicloud_esa_waf_ruleset" "login_rate_limit" {
+  site_id      = local.site_id
+  phase        = "http_ratelimit"
+  site_version = "0"
+}
+
+# 登录接口 Rate Limiting 规则:
+#   - 按 IP 维度统计,60 秒内超过 100 次请求则拦截(自动返回 429)
+#   - 注意:由于套餐限制,此规则对指定域名的所有请求生效
+resource "alicloud_esa_waf_rule" "login_rate_limit" {
+  ruleset_id = alicloud_esa_waf_ruleset.login_rate_limit.ruleset_id
+  phase      = "http_ratelimit"
+  site_id    = local.site_id
+
+  config {
+    status = "on"
+    # 匹配加速域名(http_ratelimit 阶段 expression 仅支持 http.host 等少数字段)
+    expression = "(http.host eq \"${local.accelerate_domain}\")"
+    name       = "domain-rate-limit"
+    action     = "deny"
+
+    # 频率限制配置
+    rate_limit {
+      on_hit = true
+      
+      # 统计维度:按客户端 IP
+      characteristics {
+        logic = "or"
+        criteria {
+          match_type = "ip.src"
+        }
+      }
+
+      # 统计时间窗口:10 秒(免费版/基础版仅支持10秒)
+      interval = 10
+
+      # 阈值:10 秒内最多 20 次请求(相当于每分钟120次,避免误伤正常用户)
+      threshold {
+        request = 20
+      }
+
+      # 触发后的 TTL(封禁 10 秒,与统计窗口一致)
+      ttl = 10
+    }
+  }
+}
