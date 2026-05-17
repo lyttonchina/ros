@@ -1,5 +1,5 @@
 {
-  "template-file-path": "templates/apple-api-esa-prod.json",
+  "template-file-path": "templates/apple-api-esa-prod.tf",
   "parameters": {
     "site_id": 156759048689904,
     "record_name": "apple-api-esa-prod",

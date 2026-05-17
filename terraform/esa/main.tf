@@ -1,30 +1,36 @@
 locals {
-  name_prefix = var.stack_name != "" ? var.stack_name : var.record_name
+  site_id          = "156759048689904"
+  record_name      = "apple-api-esa-prod"
+  accelerate_domain = "apple-api-esa-prod.apple-app.cn"
+  nlb_dns_name     = "nlb-eawmxizy6mlwetlt1q.us-east-1.nlb.aliyuncsslbintl.com"
+  stack_name       = "stack_esa_prod"
+  cert_domain      = "*.apple-app.cn"
+  name_prefix      = local.stack_name != "" ? local.stack_name : local.record_name
 }
 
 resource "alicloud_esa_origin_pool" "this" {
   origin_pool_name = "${local.name_prefix}_origin_pool"
-  site_id          = var.site_id
+  site_id          = local.site_id
   enabled          = "true"
 
   origins {
     type    = "ip_domain"
     name    = "nlb-origin"
-    address = var.nlb_dns_name
-    enabled = "true"
-    header  = "{\"Host\":[\"${var.nlb_dns_name}\"]}"
+    address = local.nlb_dns_name
     weight  = "100"
+    enabled = "true"
+    header  = "{\"Host\":[\"${local.nlb_dns_name}\"]}"
   }
 }
 
 resource "alicloud_esa_origin_rule" "this" {
-  site_id           = var.site_id
+  site_id           = local.site_id
   origin_scheme     = "http"
-  origin_http_port  = "8080"
+  origin_http_port = "8080"
   origin_https_port = "443"
-  origin_host       = var.accelerate_domain
-  origin_sni        = var.accelerate_domain
-  dns_record        = var.record_name
+  origin_host       = local.accelerate_domain
+  origin_sni        = local.accelerate_domain
+  dns_record        = local.record_name
   rule_enable       = "on"
   rule              = "true"
   rule_name         = "default-route"
@@ -34,26 +40,26 @@ resource "alicloud_esa_origin_rule" "this" {
 }
 
 resource "alicloud_esa_record" "this" {
-  record_name  = var.record_name
-  record_type  = "CNAME"
-  site_id      = var.site_id
-  proxied      = true
-  biz_name     = "api"
-  source_type  = "LB"
-  host_policy  = "follow_hostname"
-  ttl          = 1
+  record_name = local.record_name
+  record_type = "CNAME"
+  site_id     = local.site_id
+  proxied     = true
+  biz_name    = "api"
+  source_type = "LB"
+  host_policy = "follow_hostname"
+  ttl         = 1
 
   data {
-    value = var.nlb_dns_name
+    value = local.nlb_dns_name
   }
 
   depends_on = [alicloud_esa_origin_pool.this]
 }
 
 resource "alicloud_esa_certificate" "this" {
-  site_id      = var.site_id
+  site_id      = local.site_id
   created_type = "free"
-  domains      = var.cert_domain
+  domains      = local.cert_domain
 
   depends_on = [alicloud_esa_record.this]
 }
