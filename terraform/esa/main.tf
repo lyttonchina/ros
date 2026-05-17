@@ -25,7 +25,7 @@ resource "alicloud_esa_origin_rule" "this" {
   site_id          = local.site_id
   origin_scheme    = "http"
   origin_http_port = "8080"
-  dns_record       = local.record_name
+  dns_record       = local.accelerate_domain
   rule_enable      = "on"
   rule             = "true"
   rule_name        = "default-route"
