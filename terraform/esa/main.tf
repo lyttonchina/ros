@@ -8,7 +8,7 @@ locals {
 
 # DNS 加速记录：对应截图1 - 创建 CNAME 记录并开启代理加速
 resource "alicloud_esa_record" "this" {
-  record_name = local.record_name
+  record_name = local.accelerate_domain
   record_type = "CNAME"
   site_id     = local.site_id
   proxied     = true
