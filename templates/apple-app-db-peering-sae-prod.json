@@ -1,0 +1,87 @@
+{
+  "ROSTemplateFormatVersion": "2015-09-01",
+  "Description": "VPC Peering connection between apple-app-db and apple-api-sae-prod",
+  "Parameters": {
+    "VpcIdSae": {
+      "Type": "String",
+      "Description": "VPC ID of apple-api-sae-prod stack (172.16.0.0/16)"
+    },
+    "VpcIdDb": {
+      "Type": "String",
+      "Description": "VPC ID of apple-app-db stack (192.168.0.0/16)"
+    },
+    "VpcCidrSae": {
+      "Type": "String",
+      "Description": "CIDR block of SAE prod VPC",
+      "Default": "172.16.0.0/16"
+    },
+    "VpcCidrDb": {
+      "Type": "String",
+      "Description": "CIDR block of db VPC",
+      "Default": "192.168.0.0/16"
+    },
+    "RouteTableIdSae": {
+      "Type": "String",
+      "Description": "Route table ID of SAE prod VPC"
+    },
+    "RouteTableIdDb": {
+      "Type": "String",
+      "Description": "Route table ID of db VPC"
+    }
+  },
+  "Resources": {
+    "VpcPeering": {
+      "Type": "ALIYUN::VPC::VpcPeerConnection",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VpcIdSae"
+        },
+        "Description": "Peering between apple-app-db and apple-api-sae-prod",
+        "Name": {
+          "Fn::Sub": "${ALIYUN::StackName}_peering"
+        },
+        "AcceptingVpcId": {
+          "Ref": "VpcIdDb"
+        }
+      }
+    },
+    "RouteEntrySaeToDb": {
+      "Type": "ALIYUN::ECS::Route",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "RouteTableIdSae"
+        },
+        "DestinationCidrBlock": {
+          "Ref": "VpcCidrDb"
+        },
+        "NextHopType": "VpcPeer",
+        "NextHopId": {
+          "Ref": "VpcPeering"
+        }
+      }
+    },
+    "RouteEntryDbToSae": {
+      "Type": "ALIYUN::ECS::Route",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "RouteTableIdDb"
+        },
+        "DestinationCidrBlock": {
+          "Ref": "VpcCidrSae"
+        },
+        "NextHopType": "VpcPeer",
+        "NextHopId": {
+          "Ref": "VpcPeering"
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "PeeringConnectionId": {
+      "Description": "VPC Peering connection ID",
+      "Value": {
+        "Ref": "VpcPeering"
+      }
+    }
+  }
+}

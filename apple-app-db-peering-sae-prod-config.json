@@ -1,0 +1,14 @@
+{
+  "template-file-path": "templates/apple-app-db-peering-sae-prod.json",
+  "parameters": {
+    "VpcIdSae": "vpc-0xim2uxw5jprsbn8rp058",
+    "VpcIdDb": "vpc-0xiidoexqc8nhyjhtgbhu",
+    "VpcCidrSae": "172.16.0.0/16",
+    "VpcCidrDb": "192.168.0.0/16",
+    "RouteTableIdSae": "vtb-0xi4gdc42zof35fr5pxq6",
+    "RouteTableIdDb": "vtb-0xiik236yk8e25mb5ud6c"
+  },
+  "tags": {
+    "env": "shared"
+  }
+}
