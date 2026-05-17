@@ -1,5 +1,5 @@
 {
-  "template-file-path": "templates/apple-app-db-peering-sae-prod.json",
+  "template-file-path": "templates/apple-app-db-peering-sae-nlb-prod.json",
   "parameters": {
     "VpcIdSae": "vpc-0xim2uxw5jprsbn8rp058",
     "VpcIdDb": "vpc-0xiidoexqc8nhyjhtgbhu",
