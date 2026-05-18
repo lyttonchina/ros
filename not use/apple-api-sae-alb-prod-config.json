@@ -1,0 +1,14 @@
+{
+    "template-file-path": "templates/apple-api-sae-alb-prod.json",
+    "parameters": {
+        "PackageUrl": "https://apple-application-bj.oss-cn-beijing.aliyuncs.com/releases/yudao-server.jar",
+        "AppName": "apple-api-prod",
+        "HealthCheckPath": "/api/health",
+        "HealthCheckInitialDelay": 300,
+        "NamespaceId": "apple-api-prod"
+    },
+    "tags": {
+        "env": "prod",
+        "arch": "sae-alb"
+    }
+}

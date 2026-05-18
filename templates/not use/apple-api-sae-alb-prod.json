@@ -1,0 +1,388 @@
+{
+    "ROSTemplateFormatVersion": "2015-09-01",
+    "Resources": {
+        "SaeNamespace": {
+            "Type": "ALIYUN::SAE::Namespace",
+            "Properties": {
+                "NamespaceName": {
+                    "Fn::Sub": "${ALIYUN::StackName}_namespace"
+                },
+                "NamespaceId": {
+                    "Fn::Sub": "${ALIYUN::Region}:${NamespaceId}"
+                },
+                "NamespaceDescription": "Namespace for SAE applications"
+            }
+        },
+        "SecretDB_PASSWORD": {
+            "Type": "ALIYUN::SAE::Secret",
+            "Properties": {
+                "NamespaceId": {
+                    "Fn::GetAtt": [
+                        "SaeNamespace",
+                        "NamespaceId"
+                    ]
+                },
+                "SecretName": {
+                    "Fn::Sub": "${AppName}-db-password"
+                },
+                "SecretType": "Opaque",
+                "SecretData": {
+                    "DB_PASSWORD": "sample"
+                }
+            }
+        },
+        "SecretREDIS_PASSWORD": {
+            "Type": "ALIYUN::SAE::Secret",
+            "Properties": {
+                "NamespaceId": {
+                    "Fn::GetAtt": [
+                        "SaeNamespace",
+                        "NamespaceId"
+                    ]
+                },
+                "SecretName": {
+                    "Fn::Sub": "${AppName}-redis-password"
+                },
+                "SecretType": "Opaque",
+                "SecretData": {
+                    "REDIS_PASSWORD": "sample"
+                }
+            }
+        },
+        "SaeApplication": {
+            "Type": "ALIYUN::SAE::Application",
+            "Properties": {
+                "PackageUrl": {
+                    "Ref": "PackageUrl"
+                },
+                "VpcId": {
+                    "Ref": "VPC"
+                },
+                "Jdk": "Open JDK 21",
+                "Replicas": 1,
+                "Envs": {
+                    "Fn::Sub": [
+                        "[{\"name\":\"JAVA_OPTS\",\"value\":\"-Dserver.port=8080 -Duser.timezone=UTC\"},{\"name\":\"DB_PASSWORD\",\"valueFrom\":{\"secretRef\":{\"secretId\":${DB_PASSWORD_SECRET_ID},\"key\":\"DB_PASSWORD\"}}},{\"name\":\"REDIS_PASSWORD\",\"valueFrom\":{\"secretRef\":{\"secretId\":${REDIS_PASSWORD_SECRET_ID},\"key\":\"REDIS_PASSWORD\"}}}]",
+                        {
+                            "DB_PASSWORD_SECRET_ID": {
+                                "Fn::GetAtt": [
+                                    "SecretDB_PASSWORD",
+                                    "SecretId"
+                                ]
+                            },
+                            "REDIS_PASSWORD_SECRET_ID": {
+                                "Fn::GetAtt": [
+                                    "SecretREDIS_PASSWORD",
+                                    "SecretId"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "AppName": {
+                    "Ref": "AppName"
+                },
+                "NamespaceId": {
+                    "Fn::GetAtt": [
+                        "SaeNamespace",
+                        "NamespaceId"
+                    ]
+                },
+                "Deploy": true,
+                "Readiness": {
+                    "Fn::Sub": "{\"httpGet\":{\"path\":\"${HealthCheckPath}\",\"port\":8080,\"scheme\":\"HTTP\"},\"initialDelaySeconds\":${HealthCheckInitialDelay},\"timeoutSeconds\":150}"
+                },
+                "Liveness": {
+                    "Fn::Sub": "{\"httpGet\":{\"path\":\"${HealthCheckPath}\",\"port\":8080,\"scheme\":\"HTTP\"},\"initialDelaySeconds\":${HealthCheckInitialDelay},\"periodSeconds\":30,\"timeoutSeconds\":600}"
+                },
+                "PackageType": "FatJar",
+                "VSwitchId": {
+                    "Ref": "VSwitch"
+                },
+                "Memory": 4096,
+                "Timezone": "Asia/Shanghai",
+                "SecurityGroupId": {
+                    "Ref": "SecurityGroup"
+                },
+                "Cpu": 2000
+            },
+            "DependsOn": [
+                "SecretDB_PASSWORD",
+                "SecretREDIS_PASSWORD"
+            ]
+        },
+        "SecurityGroup": {
+            "Type": "ALIYUN::ECS::SecurityGroup",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "VPC"
+                },
+                "Description": "Security group for SAE instances",
+                "SecurityGroupName": {
+                    "Fn::Sub": "${ALIYUN::StackName}_sg"
+                }
+            },
+            "DependsOn": [
+                "VPC"
+            ]
+        },
+        "SecurityGroupRuleIngressApp": {
+            "Type": "ALIYUN::ECS::SecurityGroupIngress",
+            "Properties": {
+                "Description": {
+                    "Fn::Sub": "${ALIYUN::StackName}_allow_8080"
+                },
+                "PortRange": "8080/8080",
+                "SecurityGroupId": {
+                    "Ref": "SecurityGroup"
+                },
+                "Priority": 1,
+                "SourceCidrIp": "0.0.0.0/0",
+                "IpProtocol": "tcp"
+            },
+            "DependsOn": [
+                "SecurityGroup"
+            ]
+        },
+        "VPC": {
+            "Type": "ALIYUN::ECS::VPC",
+            "Properties": {
+                "VpcName": {
+                    "Fn::Sub": "${ALIYUN::StackName}_vpc"
+                },
+                "CidrBlock": "172.16.0.0/16",
+                "Description": "VPC created by ROS for SAE"
+            }
+        },
+        "VSwitch": {
+            "Type": "ALIYUN::ECS::VSwitch",
+            "Properties": {
+                "VSwitchName": {
+                    "Fn::Sub": "${ALIYUN::StackName}_vswitch"
+                },
+                "VpcId": {
+                    "Ref": "VPC"
+                },
+                "CidrBlock": "172.16.1.0/24",
+                "Description": "VSwitch for SAE instances",
+                "ZoneId": "us-east-1a"
+            }
+        },
+        "VSwitchB": {
+            "Type": "ALIYUN::ECS::VSwitch",
+            "Properties": {
+                "VSwitchName": {
+                    "Fn::Sub": "${ALIYUN::StackName}_b_vswitch"
+                },
+                "VpcId": {
+                    "Ref": "VPC"
+                },
+                "CidrBlock": "172.16.2.0/24",
+                "Description": "VSwitch for SAE instances",
+                "ZoneId": "us-east-1b"
+            }
+        },
+        "AlbInstance": {
+            "Type": "ALIYUN::ALB::LoadBalancer",
+            "Properties": {
+                "LoadBalancerName": {
+                    "Fn::Sub": "${ALIYUN::StackName}_alb"
+                },
+                "AddressType": "Internet",
+                "AddressAllocatedMode": "Dynamic",
+                "LoadBalancerEdition": "Basic",
+                "VpcId": {
+                    "Ref": "VPC"
+                },
+                "ZoneMappings": [
+                    {
+                        "VSwitchId": {
+                            "Ref": "VSwitch"
+                        },
+                        "ZoneId": "us-east-1a"
+                    },
+                    {
+                        "VSwitchId": {
+                            "Ref": "VSwitchB"
+                        },
+                        "ZoneId": "us-east-1b"
+                    }
+                ],
+                "ModificationProtectionConfig": {
+                    "Status": "NonProtection"
+                }
+            }
+        },
+        "AlbServerGroup": {
+            "Type": "ALIYUN::ALB::ServerGroup",
+            "Properties": {
+                "ServerGroupName": {
+                    "Fn::Sub": "${ALIYUN::StackName}_server_group"
+                },
+                "VpcId": {
+                    "Ref": "VPC"
+                },
+                "Protocol": "HTTP",
+                "HealthCheckConfig": {
+                    "HealthCheckEnabled": true,
+                    "HealthCheckProtocol": "HTTP",
+                    "HealthCheckPath": "/api/health",
+                    "HealthyThreshold": 3,
+                    "UnhealthyThreshold": 3,
+                    "HealthCheckInterval": 10,
+                    "HealthCheckTimeout": 150,
+                    "HealthCheckHttpCode": "http_2xx,http_3xx"
+                }
+            }
+        },
+        "AlbListener": {
+            "Type": "ALIYUN::ALB::Listener",
+            "Properties": {
+                "LoadBalancerId": {
+                    "Ref": "AlbInstance"
+                },
+                "ListenerPort": 80,
+                "Protocol": "HTTP",
+                "DefaultServerGroupId": {
+                    "Ref": "AlbServerGroup"
+                },
+                "IdleTimeout": 600,
+                "RequestTimeout": 600
+            }
+        },
+        "SaeAlbBinding": {
+            "Type": "ALIYUN::SAE::AlbBinding",
+            "Properties": {
+                "AppId": {
+                    "Ref": "SaeApplication"
+                },
+                "AlbId": {
+                    "Ref": "AlbInstance"
+                },
+                "Listeners": [
+                    {
+                        "Port": 80,
+                        "TargetPort": 8080,
+                        "Protocol": "HTTP"
+                    }
+                ]
+            },
+            "DependsOn": [
+                "AlbListener",
+                "AlbServerGroup"
+            ]
+        },
+        "ScalingRule": {
+            "Type": "ALIYUN::SAE::ApplicationScalingRule",
+            "Properties": {
+                "ScalingRuleMetric": {
+                    "MinReplicas": 1,
+                    "Metrics": [
+                        {
+                            "MetricTargetAverageUtilization": 85,
+                            "MetricType": "CPU"
+                        }
+                    ],
+                    "ScaleUpRules": {
+                        "Disabled": false,
+                        "Step": "1",
+                        "StabilizationWindowSeconds": 60
+                    },
+                    "MaxReplicas": 10,
+                    "ScaleDownRules": {
+                        "Disabled": false,
+                        "Step": "1",
+                        "StabilizationWindowSeconds": 300
+                    }
+                },
+                "ScalingRuleName": {
+                    "Fn::Sub": "${AppName}-scaling-rule"
+                },
+                "ScalingRuleEnable": true,
+                "ScalingRuleType": "metric",
+                "AppId": {
+                    "Ref": "SaeApplication"
+                },
+                "MinReadyInstances": 0
+            },
+            "DependsOn": [
+                "SaeAlbBinding"
+            ]
+        }
+    },
+    "Description": "Pure SAE deployment with ALB by ROS",
+    "Parameters": {
+        "PackageUrl": {
+            "Default": "https://apple-application-bj.oss-cn-beijing.aliyuncs.com/releases/yudao-server.jar",
+            "Type": "String",
+            "Description": "JAR Package OSS URL"
+        },
+        "AppName": {
+            "Default": "apple-api-prod",
+            "Type": "String",
+            "Description": "SAE Application Name"
+        },
+        "HealthCheckPath": {
+            "Default": "/api/health",
+            "Type": "String",
+            "Description": "Health Check Path"
+        },
+        "NamespaceId": {
+            "Default": "apple-api-prod",
+            "Type": "String",
+            "Description": "SAE namespace logical ID; stack region is prefixed automatically"
+        },
+        "HealthCheckInitialDelay": {
+            "Default": 300,
+            "Type": "Number",
+            "Description": "Health check initial delay in seconds"
+        }
+    },
+    "Outputs": {
+        "SaeNamespaceId": {
+            "Description": "SAE Namespace ID (Region:LogicalId)",
+            "Value": {
+                "Fn::GetAtt": [
+                    "SaeNamespace",
+                    "NamespaceId"
+                ]
+            }
+        },
+        "SaeApp": {
+            "Description": "SAE Application Name",
+            "Value": {
+                "Ref": "SaeApplication"
+            }
+        },
+        "VpcId": {
+            "Description": "VPC ID",
+            "Value": {
+                "Ref": "VPC"
+            }
+        },
+        "AlbDNSName": {
+            "Description": "ALB DNS name (use this as the DNS target)",
+            "Value": {
+                "Fn::GetAtt": [
+                    "AlbInstance",
+                    "DNSName"
+                ]
+            }
+        },
+        "AlbId": {
+            "Description": "ALB instance ID",
+            "Value": {
+                "Ref": "AlbInstance"
+            }
+        },
+        "SaeAlbBindingId": {
+            "Description": "SAE ALB Binding ID",
+            "Value": {
+                "Fn::GetAtt": [
+                    "SaeAlbBinding",
+                    "AlbId"
+                ]
+            }
+        }
+    }
+}
