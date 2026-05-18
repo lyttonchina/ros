@@ -8,7 +8,7 @@
                     "Fn::Sub": "${ALIYUN::StackName}_namespace"
                 },
                 "NamespaceId": {
-                    "Fn::Sub": "${ALIYUN::Region}:${NamespaceId}"
+                    "Fn::Sub": "${ALIYUN::Region}:apple-api-sae-alb-prod"
                 },
                 "NamespaceDescription": "Namespace for SAE applications"
             }
@@ -208,6 +208,9 @@
                         "ZoneId": "us-east-1b"
                     }
                 ],
+                "LoadBalancerBillingConfig": {
+                    "PayType": "PostPay"
+                },
                 "ModificationProtectionConfig": {
                     "Status": "NonProtection"
                 }
@@ -231,7 +234,10 @@
                     "UnhealthyThreshold": 3,
                     "HealthCheckInterval": 10,
                     "HealthCheckTimeout": 150,
-                    "HealthCheckHttpCode": "http_2xx,http_3xx"
+                    "HealthCheckCodes": [
+                        "http_2xx",
+                        "http_3xx"
+                    ]
                 }
             }
         },
@@ -242,30 +248,73 @@
                     "Ref": "AlbInstance"
                 },
                 "ListenerPort": 80,
-                "Protocol": "HTTP",
-                "DefaultServerGroupId": {
-                    "Ref": "AlbServerGroup"
-                },
+                "ListenerProtocol": "HTTP",
+                "DefaultActions": [
+                    {
+                        "ForwardGroupConfig": {
+                            "ServerGroupTuples": [
+                                {
+                                    "ServerGroupId": {
+                                        "Ref": "AlbServerGroup"
+                                    }
+                                }
+                            ]
+                        },
+                        "Type": "ForwardGroup"
+                    }
+                ],
                 "IdleTimeout": 600,
                 "RequestTimeout": 600
             }
         },
-        "SaeAlbBinding": {
-            "Type": "ALIYUN::SAE::AlbBinding",
+        "SaeIngress": {
+            "Type": "ALIYUN::SAE::Ingress",
             "Properties": {
-                "AppId": {
-                    "Ref": "SaeApplication"
+                "Description": {
+                    "Ref": "AppName"
                 },
-                "AlbId": {
+                "Rules": [
+                    {
+                        "Path": "/*",
+                        "Domain": {
+                            "Fn::Join": [
+                                ".",
+                                [
+                                    {
+                                        "Ref": "DomainPrefix"
+                                    },
+                                    {
+                                        "Ref": "RootDomain"
+                                    }
+                                ]
+                            ]
+                        },
+                        "BackendProtocol": "http",
+                        "ContainerPort": 8080,
+                        "AppId": {
+                            "Ref": "SaeApplication"
+                        }
+                    }
+                ],
+                "ListenerPort": 80,
+                "DefaultRule": {
+                    "BackendProtocol": "http",
+                    "ContainerPort": 8080,
+                    "AppId": {
+                        "Ref": "SaeApplication"
+                    }
+                },
+                "ListenerProtocol": "HTTP",
+                "LoadBalanceType": "alb",
+                "SlbId": {
                     "Ref": "AlbInstance"
                 },
-                "Listeners": [
-                    {
-                        "Port": 80,
-                        "TargetPort": 8080,
-                        "Protocol": "HTTP"
-                    }
-                ]
+                "NamespaceId": {
+                    "Fn::GetAtt": [
+                        "SaeNamespace",
+                        "NamespaceId"
+                    ]
+                }
             },
             "DependsOn": [
                 "AlbListener",
@@ -306,7 +355,7 @@
                 "MinReadyInstances": 0
             },
             "DependsOn": [
-                "SaeAlbBinding"
+                "SaeIngress"
             ]
         }
     },
@@ -336,6 +385,16 @@
             "Default": 300,
             "Type": "Number",
             "Description": "Health check initial delay in seconds"
+        },
+        "DomainPrefix": {
+            "Default": "api-prod",
+            "Type": "String",
+            "Description": "域名前缀，如 api-prod 将组成 api-prod.apple-app.cn"
+        },
+        "RootDomain": {
+            "Default": "apple-app.cn",
+            "Type": "String",
+            "Description": "根域名，如 apple-app.cn"
         }
     },
     "Outputs": {
@@ -375,13 +434,10 @@
                 "Ref": "AlbInstance"
             }
         },
-        "SaeAlbBindingId": {
-            "Description": "SAE ALB Binding ID",
+        "SaeIngressId": {
+            "Description": "SAE Ingress ID",
             "Value": {
-                "Fn::GetAtt": [
-                    "SaeAlbBinding",
-                    "AlbId"
-                ]
+                "Ref": "SaeIngress"
             }
         }
     }

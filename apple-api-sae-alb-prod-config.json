@@ -4,8 +4,7 @@
         "PackageUrl": "https://apple-application-bj.oss-cn-beijing.aliyuncs.com/releases/yudao-server.jar",
         "AppName": "apple-api-prod",
         "HealthCheckPath": "/api/health",
-        "HealthCheckInitialDelay": 300,
-        "NamespaceId": "apple-api-prod"
+        "HealthCheckInitialDelay": 300
     },
     "tags": {
         "env": "prod",
