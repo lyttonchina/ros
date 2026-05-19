@@ -3,7 +3,7 @@ locals {
   record_name       = "www"
   accelerate_domain = "www.apple-app.cn"
   bucket_name       = "apple-app-homepage-gz"
-  oss_region        = "cn-hangzhou"
+  oss_region        = "cn-guangzhou"  # 广州区域（与 Bucket 实际位置一致）
   oss_endpoint      = "${local.bucket_name}.oss-${local.oss_region}.aliyuncs.com"
   cert_domain       = "*.apple-app.cn"
 }

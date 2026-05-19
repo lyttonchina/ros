@@ -5,7 +5,7 @@
     "accelerate_domain": "www.apple-app.cn",
     "record_name": "www",
     "bucket_name": "apple-app-homepage-gz",
-    "oss_region": "cn-hangzhou",
+    "oss_region": "cn-guangzhou",
     "tags": {
       "env": "homepage",
       "arch": "esa"
