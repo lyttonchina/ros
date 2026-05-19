@@ -6,7 +6,6 @@
     "record_name": "www",
     "bucket_name": "apple-app-homepage-gz",
     "oss_region": "cn-hangzhou",
-    "cert_domain": "*.apple-app.cn",
     "tags": {
       "env": "homepage",
       "arch": "esa"

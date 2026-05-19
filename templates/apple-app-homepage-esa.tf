@@ -26,7 +26,7 @@ resource "alicloud_oss_bucket" "homepage" {
 
   # 版本控制（可选）
   versioning {
-    status = "Disabled"
+    status = "Suspended"
   }
 
   # 冗余类型：LRS（本地冗余存储）
@@ -47,7 +47,7 @@ resource "alicloud_esa_record" "homepage" {
   record_type = "CNAME"
   site_id     = local.site_id
   proxied     = true
-  biz_name    = "homepage"
+  biz_name    = "web"
   ttl         = 600
 
   data {
@@ -57,7 +57,15 @@ resource "alicloud_esa_record" "homepage" {
   depends_on = [alicloud_oss_bucket.homepage]
 }
 
+# 免费证书：申请免费边缘证书（如果站点已有泛域名证书，会自动复用）
+resource "alicloud_esa_certificate" "homepage" {
+  site_id      = local.site_id
+  created_type = "free"
+  domains      = local.cert_domain
+}
+
 # 回源协议和端口：配置回源协议 HTTP 和端口 80（OSS 默认端口）
+# 使用精确匹配条件，只匹配 www.apple-app.cn 域名，避免与 API 的默认路由冲突
 resource "alicloud_esa_origin_rule" "homepage" {
   site_id          = local.site_id
   origin_scheme    = "http"
@@ -65,54 +73,12 @@ resource "alicloud_esa_origin_rule" "homepage" {
   dns_record       = local.accelerate_domain
   origin_host      = local.oss_endpoint
   rule_enable      = "on"
-  rule             = "true"
+  rule             = "(http.host eq \"${local.accelerate_domain}\")"
   rule_name        = "homepage-route"
+
+  depends_on = [alicloud_esa_record.homepage]
 }
 
-# WAF Ruleset: 定义一个 http_ratelimit 阶段的规则集（用于频率控制，防止恶意请求）
-resource "alicloud_esa_waf_ruleset" "homepage_rate_limit" {
-  site_id      = local.site_id
-  phase        = "http_ratelimit"
-  site_version = "0"
-}
-
-# 官网 Rate Limiting 规则：
-#   - 按 IP 维度统计，10 秒内超过 50 次请求则拦截（自动返回 429）
-#   - 保护官网免受恶意爬虫或 DDoS 攻击
-resource "alicloud_esa_waf_rule" "homepage_rate_limit" {
-  ruleset_id = alicloud_esa_waf_ruleset.homepage_rate_limit.ruleset_id
-  phase      = "http_ratelimit"
-  site_id    = local.site_id
-
-  config {
-    status = "on"
-    # 匹配加速域名
-    expression = "(http.host eq \"${local.accelerate_domain}\")"
-    name       = "homepage-rate-limit"
-    action     = "deny"
-
-    # 频率限制配置
-    rate_limit {
-      on_hit = true
-      
-      # 统计维度：按客户端 IP
-      characteristics {
-        logic = "or"
-        criteria {
-          match_type = "ip.src"
-        }
-      }
-
-      # 统计时间窗口：10 秒
-      interval = 10
-
-      # 阈值：10 秒内最多 50 次请求（相当于每分钟300次，适合官网浏览场景）
-      threshold {
-        request = 50
-      }
-
-      # 触发后的 TTL（封禁 10 秒，与统计窗口一致）
-      ttl = 10
-    }
-  }
-}
+# 注意：WAF Ruleset 已由 apple-api-esa-prod.tf 创建，此处复用
+# 如需为官网添加独立的速率限制规则，请在阿里云 ESA 控制台手动配置
+# 或在 apple-api-esa-prod.tf 中添加新的 waf_rule 资源
