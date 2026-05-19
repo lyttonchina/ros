@@ -21,6 +21,7 @@ resource "alicloud_esa_record" "this" {
 }
 
 # 回源协议和端口：对应截图2 - 配置回源协议 HTTP 和端口 8080
+# 使用精确匹配条件，只匹配 API 域名，避免拦截官网等其他域名的请求
 resource "alicloud_esa_origin_rule" "this" {
   site_id          = local.site_id
   origin_scheme    = "http"
@@ -28,7 +29,7 @@ resource "alicloud_esa_origin_rule" "this" {
   dns_record       = local.accelerate_domain
   origin_host      = local.accelerate_domain
   rule_enable      = "on"
-  rule             = "true"
+  rule             = "(http.host eq \"${local.accelerate_domain}\")"
   rule_name        = "default-route"
 }
 
