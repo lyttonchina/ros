@@ -291,9 +291,7 @@
                         "SaeNamespace",
                         "NamespaceId"
                     ]
-                },
-                "IdleTimeout": 900,
-                "RequestTimeout": 900
+                }
             },
             "DependsOn": [
                 "AlbServerGroup"
