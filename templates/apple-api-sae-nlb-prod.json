@@ -215,6 +215,102 @@
         "ZoneId": "us-east-1b"
       }
     },
+    "NatGateway": {
+      "Type": "ALIYUN::VPC::NatGateway",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "VSwitchId": {
+          "Ref": "VSwitch"
+        },
+        "NatGatewayName": {
+          "Fn::Sub": "${ALIYUN::StackName}_nat_gateway"
+        },
+        "Description": "NAT Gateway for outbound internet access",
+        "InstanceChargeType": "PostPaid"
+      },
+      "DependsOn": [
+        "VPC",
+        "VSwitch"
+      ]
+    },
+    "EipAddress": {
+      "Type": "ALIYUN::VPC::EIP",
+      "Properties": {
+        "Bandwidth": 50,
+        "InternetChargeType": "PayByTraffic",
+        "Name": {
+          "Fn::Sub": "${ALIYUN::StackName}_eip"
+        },
+        "Description": "EIP for NAT Gateway outbound access"
+      }
+    },
+    "EipAssociation": {
+      "Type": "ALIYUN::VPC::EIPAssociation",
+      "Properties": {
+        "AllocationId": {
+          "Ref": "EipAddress"
+        },
+        "InstanceId": {
+          "Ref": "NatGateway"
+        }
+      },
+      "DependsOn": [
+        "NatGateway",
+        "EipAddress"
+      ]
+    },
+    "SnatEntryA": {
+      "Type": "ALIYUN::VPC::SnatEntry",
+      "Properties": {
+        "SnatEntryName": {
+          "Fn::Sub": "${ALIYUN::StackName}_snat_a"
+        },
+        "SnatTableId": {
+          "Fn::GetAtt": [
+            "NatGateway",
+            "SNatTableId"
+          ]
+        },
+        "SourceCIDR": "172.16.1.0/24",
+        "SnatIp": {
+          "Fn::GetAtt": [
+            "EipAddress",
+            "EipAddress"
+          ]
+        }
+      },
+      "DependsOn": [
+        "NatGateway",
+        "EipAssociation"
+      ]
+    },
+    "SnatEntryB": {
+      "Type": "ALIYUN::VPC::SnatEntry",
+      "Properties": {
+        "SnatEntryName": {
+          "Fn::Sub": "${ALIYUN::StackName}_snat_b"
+        },
+        "SnatTableId": {
+          "Fn::GetAtt": [
+            "NatGateway",
+            "SNatTableId"
+          ]
+        },
+        "SourceCIDR": "172.16.2.0/24",
+        "SnatIp": {
+          "Fn::GetAtt": [
+            "EipAddress",
+            "EipAddress"
+          ]
+        }
+      },
+      "DependsOn": [
+        "NatGateway",
+        "EipAssociation"
+      ]
+    },
     "NlbServerGroup": {
       "Type": "ALIYUN::NLB::ServerGroup",
       "Properties": {
