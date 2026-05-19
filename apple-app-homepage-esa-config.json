@@ -1,0 +1,15 @@
+{
+  "template-file-path": "templates/apple-app-homepage-esa.tf",
+  "parameters": {
+    "site_id": "156759048689904",
+    "accelerate_domain": "www.apple-app.cn",
+    "record_name": "www",
+    "bucket_name": "apple-app-homepage-gz",
+    "oss_region": "cn-hangzhou",
+    "cert_domain": "*.apple-app.cn",
+    "tags": {
+      "env": "homepage",
+      "arch": "esa"
+    }
+  }
+}
