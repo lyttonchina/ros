@@ -226,6 +226,9 @@
                     "Ref": "VPC"
                 },
                 "Protocol": "HTTP",
+                "StickySessionConfig": {
+                    "StickySessionEnabled": false
+                },
                 "HealthCheckConfig": {
                     "HealthCheckEnabled": true,
                     "HealthCheckProtocol": "HTTP",
@@ -239,32 +242,6 @@
                         "http_3xx"
                     ]
                 }
-            }
-        },
-        "AlbListener": {
-            "Type": "ALIYUN::ALB::Listener",
-            "Properties": {
-                "LoadBalancerId": {
-                    "Ref": "AlbInstance"
-                },
-                "ListenerPort": 80,
-                "ListenerProtocol": "HTTP",
-                "DefaultActions": [
-                    {
-                        "ForwardGroupConfig": {
-                            "ServerGroupTuples": [
-                                {
-                                    "ServerGroupId": {
-                                        "Ref": "AlbServerGroup"
-                                    }
-                                }
-                            ]
-                        },
-                        "Type": "ForwardGroup"
-                    }
-                ],
-                "IdleTimeout": 600,
-                "RequestTimeout": 600
             }
         },
         "SaeIngress": {
@@ -314,10 +291,11 @@
                         "SaeNamespace",
                         "NamespaceId"
                     ]
-                }
+                },
+                "IdleTimeout": 900,
+                "RequestTimeout": 900
             },
             "DependsOn": [
-                "AlbListener",
                 "AlbServerGroup"
             ]
         },
