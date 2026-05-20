@@ -1,0 +1,14 @@
+{
+    "template-file-path": "templates/apple-app-web-admin-esa.tf",
+    "parameters": {
+        "site_id": "156759048689904",
+        "accelerate_domain": "admin.apple-app.cn",
+        "record_name": "admin",
+        "bucket_name": "web-admin-esa-prod-gz",
+        "oss_region": "cn-guangzhou",
+        "tags": {
+            "env": "web-admin-esa",
+            "arch": "esa"
+        }
+    }
+}
