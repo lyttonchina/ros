@@ -44,7 +44,8 @@ resource "alicloud_oss_bucket" "homepage" {
   }
 }
 
-# DNS 加速记录：创建 CNAME 记录并开启代理加速，指向 OSS
+# DNS 加速记录：创建 CNAME 记录并开启代理加速，源站类型选择 OSS
+# 源站类型设置为 OSS 可以享受 OSS 回源流量优惠，并避免 Content-Disposition: attachment 问题
 resource "alicloud_esa_record" "homepage" {
   record_name = local.accelerate_domain
   record_type = "CNAME"
@@ -52,9 +53,15 @@ resource "alicloud_esa_record" "homepage" {
   proxied     = true
   biz_name    = "web"
   ttl         = 600
+  source_type = "OSS"  # 关键：选择 OSS 源站类型，而非域名类型
 
   data {
     value = local.oss_endpoint
+  }
+
+  # OSS 公共访问无需配置鉴权信息
+  auth_conf {
+    auth_type = "public"
   }
 
   depends_on = [alicloud_oss_bucket.homepage]
