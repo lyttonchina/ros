@@ -5,8 +5,9 @@ locals {
   bucket_name       = "apple-app-homepage-gz"
   oss_region        = "cn-guangzhou"  # 广州区域（与 Bucket 实际位置一致）
   oss_endpoint      = "${local.bucket_name}.oss-${local.oss_region}.aliyuncs.com"
-  # 静态网站托管 Endpoint（用于回源，避免 Content-Disposition: attachment）
-  oss_web_endpoint  = "${local.bucket_name}.oss-website-${local.oss_region}.aliyuncs.com"
+  # 静态网站托管：启用 website 配置后，使用标准 Endpoint 即可自动返回 HTML
+  # 不需要特殊的 oss-website 域名，标准 Endpoint 已支持静态网站托管
+  oss_web_endpoint  = local.oss_endpoint
   cert_domain       = "*.apple-app.cn"
 }
 
@@ -68,13 +69,13 @@ resource "alicloud_esa_certificate" "homepage" {
 
 # 回源协议和端口：配置回源协议 HTTP 和端口 80（OSS 默认端口）
 # 使用精确匹配条件，只匹配 www.apple-app.cn 域名，避免与 API 的默认路由冲突
-# 使用 OSS 静态网站托管 Endpoint，避免 Content-Disposition: attachment 问题
+# 使用标准 OSS Endpoint，Bucket 已启用静态网站托管，会自动返回 HTML 内容
 resource "alicloud_esa_origin_rule" "homepage" {
   site_id          = local.site_id
   origin_scheme    = "http"
   origin_http_port = "80"
   dns_record       = local.accelerate_domain
-  origin_host      = local.oss_web_endpoint  # 使用静态网站托管 Endpoint
+  origin_host      = local.oss_web_endpoint  # 使用标准 OSS Endpoint
   rule_enable      = "on"
   rule             = "(http.host eq \"${local.accelerate_domain}\")"
   rule_name        = "homepage-route"
