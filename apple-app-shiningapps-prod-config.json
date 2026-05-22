@@ -1,0 +1,14 @@
+{
+  "template-file-path": "templates/apple-api-esa-shiningapps.tf",
+  "parameters": {
+    "site_id": "156759048689904",
+    "accelerate_domain": "api.shiningapps.top",
+    "record_name": "api-shiningapps-top",
+    "nlb_dns_name": "nlb-eawmxizy6mlwetlt1q.us-east-1.nlb.aliyuncsslbintl.com",
+    "cert_domain": "*.shiningapps.top",
+    "tags": {
+      "env": "prod",
+      "arch": "esa"
+    }
+  }
+}
