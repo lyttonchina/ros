@@ -1,0 +1,13 @@
+{
+  "template-file-path": "templates/apple-api-s2s-prod.tf",
+  "parameters": {
+    "site_id": "156759048689904",
+    "accelerate_domain": "s2s-prod.apple-app.cn",
+    "record_name": "s2s-prod",
+    "nlb_dns_name": "nlb-eawmxizy6mlwetlt1q.us-east-1.nlb.aliyuncsslbintl.com",
+    "tags": {
+      "env": "prod",
+      "arch": "esa"
+    }
+  }
+}
