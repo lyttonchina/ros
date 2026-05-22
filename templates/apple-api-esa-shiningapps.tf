@@ -3,7 +3,7 @@ locals {
   record_name       = "api-shiningapps-top"
   accelerate_domain = "api.shiningapps.top"
   nlb_dns_name      = "nlb-eawmxizy6mlwetlt1q.us-east-1.nlb.aliyuncsslbintl.com"
-  cert_domain       = "*.shiningapps.top"
+  cert_domain       = "api.shiningapps.top"
 }
 
 # DNS 加速记录：对应截图1 - 创建 CNAME 记录并开启代理加速
