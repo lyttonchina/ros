@@ -3,7 +3,6 @@ locals {
   record_name       = "apple-api-esa-prod"
   accelerate_domain = "apple-api-esa-prod.apple-app.cn"
   nlb_dns_name      = "nlb-eawmxizy6mlwetlt1q.us-east-1.nlb.aliyuncsslbintl.com"
-  cert_domain       = "*.apple-app.cn"
 }
 
 # DNS 加速记录：对应截图1 - 创建 CNAME 记录并开启代理加速
@@ -33,11 +32,11 @@ resource "alicloud_esa_origin_rule" "this" {
   rule_name        = "default-route"
 }
 
-# 免费证书：对应截图3和4 - 申请免费边缘证书
+# 免费证书：申请边缘证书
 resource "alicloud_esa_certificate" "this" {
   site_id      = local.site_id
   created_type = "free"
-  domains      = local.cert_domain
+  domains      = "apple-api-esa-prod.apple-app.cn"
 }
 
 # WAF Ruleset:定义一个 http_ratelimit 阶段的规则集(用于频率控制)

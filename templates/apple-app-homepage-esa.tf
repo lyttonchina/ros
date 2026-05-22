@@ -8,7 +8,6 @@ locals {
   # 静态网站托管：启用 website 配置后，使用标准 Endpoint 即可自动返回 HTML
   # 不需要特殊的 oss-website 域名，标准 Endpoint 已支持静态网站托管
   oss_web_endpoint  = local.oss_endpoint
-  cert_domain       = "*.apple-app.cn"
 }
 
 # 创建 OSS 存储桶
@@ -67,11 +66,11 @@ resource "alicloud_esa_record" "homepage" {
   depends_on = [alicloud_oss_bucket.homepage]
 }
 
-# 免费证书：申请免费边缘证书（如果站点已有泛域名证书，会自动复用）
+# 免费证书：为 www.apple-app.cn 申请单域名边缘证书
 resource "alicloud_esa_certificate" "homepage" {
   site_id      = local.site_id
   created_type = "free"
-  domains      = local.cert_domain
+  domains      = "www.apple-app.cn"
 }
 
 # 回源协议和端口：配置回源协议 HTTP 和端口 80（OSS 默认端口）
