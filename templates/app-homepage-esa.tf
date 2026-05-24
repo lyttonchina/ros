@@ -90,13 +90,14 @@ resource "alicloud_esa_certificate" "taim" {
   domains      = "taim.apple-app.cn"
 }
 
-# 回源规则：taim.apple-app.cn → OSS 根目录
+# 回源规则：taim.apple-app.cn → OSS taim/ 子目录
 resource "alicloud_esa_origin_rule" "taim" {
   site_id          = local.site_id
   origin_scheme    = "http"
   origin_http_port = "80"
   dns_record       = "taim.apple-app.cn"
   origin_host      = local.oss_web_endpoint
+  prefix           = "taim/"  # 添加目录前缀，回源时自动访问 taim/ 子目录
   rule_enable      = "on"
   rule             = "(http.host eq \"taim.apple-app.cn\")"
   rule_name        = "taim-route"
@@ -143,6 +144,7 @@ resource "alicloud_esa_origin_rule" "tunneling" {
   origin_http_port = "80"
   dns_record       = "tunneling.apple-app.cn"
   origin_host      = local.oss_web_endpoint
+  prefix           = "tunneling/"  # 添加目录前缀，回源时自动访问 tunneling/ 子目录
   rule_enable      = "on"
   rule             = "(http.host eq \"tunneling.apple-app.cn\")"
   rule_name        = "tunneling-route"
