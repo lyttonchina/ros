@@ -1,7 +1,28 @@
+variable "site_id" {
+  description = "ESA Site ID"
+  type        = string
+}
+
+variable "bucket_name" {
+  description = "OSS Bucket name"
+  type        = string
+}
+
+variable "oss_region" {
+  description = "OSS Region"
+  type        = string
+}
+
+variable "tags" {
+  description = "Resource tags"
+  type        = map(string)
+  default     = {}
+}
+
 locals {
-  site_id      = 156759048689904
-  bucket_name  = "apple-app-esa-gz"
-  oss_region   = "cn-guangzhou"  # 广州区域（与 Bucket 实际位置一致）
+  site_id      = var.site_id
+  bucket_name  = var.bucket_name
+  oss_region   = var.oss_region
   oss_endpoint = "${local.bucket_name}.oss-${local.oss_region}.aliyuncs.com"
   # 静态网站托管：启用 website 配置后，使用标准 Endpoint 即可自动返回 HTML
   oss_web_endpoint = local.oss_endpoint
@@ -34,10 +55,7 @@ resource "alicloud_oss_bucket" "app" {
   # 存储类型：Standard（标准存储）
   storage_class = "Standard"
 
-  tags = {
-    env     = "esa"
-    project = "apple-app"
-  }
+  tags = var.tags
 }
 
 # ============================================================
