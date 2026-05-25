@@ -104,16 +104,28 @@ resource "alicloud_esa_origin_rule" "taim" {
   depends_on = [alicloud_esa_record.taim]
 }
 
-# URL 重写规则：taim.apple-app.cn → 添加 taim/ 前缀回源
+# URL 重写规则：taim.apple-app.cn 根路径 → /taim/index.html
+resource "alicloud_esa_rewrite_url_rule" "taim_root" {
+  site_id         = local.site_id
+  rule_name       = "taim-root-rewrite"
+  rule            = "(http.host eq \"taim.apple-app.cn\" and http.request.uri.path eq \"/\")"
+  rule_enable     = "on"
+  rewrite_uri_type = "static"
+  uri             = "/taim/index.html"
+
+  depends_on = [alicloud_esa_origin_rule.taim]
+}
+
+# URL 重写规则：taim.apple-app.cn 其他路径 → 添加 taim/ 前缀回源
 resource "alicloud_esa_rewrite_url_rule" "taim" {
   site_id         = local.site_id
   rule_name       = "taim-rewrite"
-  rule            = "(http.host eq \"taim.apple-app.cn\")"
+  rule            = "(http.host eq \"taim.apple-app.cn\" and http.request.uri.path ne \"/\")"
   rule_enable     = "on"
   rewrite_uri_type = "dynamic"
   uri             = "concat(\"/taim\", http.request.uri.path)"
 
-  depends_on = [alicloud_esa_origin_rule.taim]
+  depends_on = [alicloud_esa_rewrite_url_rule.taim_root]
 }
 
 # ============================================================
@@ -162,16 +174,28 @@ resource "alicloud_esa_origin_rule" "tunneling" {
   depends_on = [alicloud_esa_record.tunneling]
 }
 
-# URL 重写规则：tunneling.apple-app.cn → 添加 tunneling/ 前缀回源
+# URL 重写规则：tunneling.apple-app.cn 根路径 → /tunneling/index.html
+resource "alicloud_esa_rewrite_url_rule" "tunneling_root" {
+  site_id         = local.site_id
+  rule_name       = "tunneling-root-rewrite"
+  rule            = "(http.host eq \"tunneling.apple-app.cn\" and http.request.uri.path eq \"/\")"
+  rule_enable     = "on"
+  rewrite_uri_type = "static"
+  uri             = "/tunneling/index.html"
+
+  depends_on = [alicloud_esa_origin_rule.tunneling]
+}
+
+# URL 重写规则：tunneling.apple-app.cn 其他路径 → 添加 tunneling/ 前缀回源
 resource "alicloud_esa_rewrite_url_rule" "tunneling" {
   site_id         = local.site_id
   rule_name       = "tunneling-rewrite"
-  rule            = "(http.host eq \"tunneling.apple-app.cn\")"
+  rule            = "(http.host eq \"tunneling.apple-app.cn\" and http.request.uri.path ne \"/\")"
   rule_enable     = "on"
   rewrite_uri_type = "dynamic"
   uri             = "concat(\"/tunneling\", http.request.uri.path)"
 
-  depends_on = [alicloud_esa_origin_rule.tunneling]
+  depends_on = [alicloud_esa_rewrite_url_rule.tunneling_root]
 }
 
 # 注意：WAF Ruleset 已由 apple-api-esa-prod.tf 创建，此处复用
