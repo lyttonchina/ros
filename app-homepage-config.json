@@ -1,8 +1,8 @@
 {
   "template-file-path": "templates/app-homepage-esa.tf",
   "parameters": {
-    "site_id": "156759048689904",
-    "oss_region": "cn-guangzhou",
+    "site_id": "157859014523116",
+    "oss_region": "us-east-1",
     "tags": {
       "env": "homepage",
       "arch": "esa"
