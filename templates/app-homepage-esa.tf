@@ -185,6 +185,14 @@ locals {
   lockwake_accelerate_domain = "lockwake.shiningapps.top"
 }
 
+locals {
+  homepage_cache_rule_hosts = join(" or ", [
+    "(http.host eq \"${local.taim_accelerate_domain}\")",
+    "(http.host eq \"${local.tunneling_accelerate_domain}\")",
+    "(http.host eq \"${local.lockwake_accelerate_domain}\")",
+  ])
+}
+
 # 创建 lockwake 应用的 OSS 存储桶
 resource "alicloud_oss_bucket" "lockwake" {
   bucket        = local.lockwake_bucket_name
@@ -251,6 +259,29 @@ resource "alicloud_esa_origin_rule" "lockwake" {
   rule_name        = "lockwake-route"
 
   depends_on = [alicloud_esa_record.lockwake]
+}
+
+# 静态主页缓存：避免 HTML 被 ESA 判为 DYNAMIC 后每次跨区回源 OSS。
+resource "alicloud_esa_cache_rule" "homepage_static" {
+  site_id     = local.site_id
+  rule_name   = "homepage-static-cache"
+  rule_enable = "on"
+  rule        = "(${local.homepage_cache_rule_hosts})"
+
+  bypass_cache                 = "cache_all"
+  edge_cache_mode              = "override_origin"
+  edge_cache_ttl               = "3600"
+  browser_cache_mode           = "override_origin"
+  browser_cache_ttl            = "300"
+  query_string_mode            = "reserve_all"
+  sort_query_string_for_cache  = "on"
+  serve_stale                  = "on"
+
+  depends_on = [
+    alicloud_esa_origin_rule.taim,
+    alicloud_esa_origin_rule.tunneling,
+    alicloud_esa_origin_rule.lockwake,
+  ]
 }
 
 # 注意：WAF Ruleset 已由 apple-api-esa-prod.tf 创建，此处复用

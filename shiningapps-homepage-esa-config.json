@@ -1,0 +1,12 @@
+{
+  "template-file-path": "templates/shiningapps-homepage-esa.tf",
+  "parameters": {
+    "site_id": "157859014523116",
+    "accelerate_domain": "www.shiningapps.top",
+    "origin_domain": "www.apple-app.cn",
+    "tags": {
+      "env": "homepage",
+      "arch": "esa"
+    }
+  }
+}

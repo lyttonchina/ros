@@ -89,6 +89,25 @@ resource "alicloud_esa_origin_rule" "homepage" {
   depends_on = [alicloud_esa_record.homepage]
 }
 
+# 静态官网缓存：避免 HTML 被 ESA 判为 DYNAMIC 后每次回源 OSS。
+resource "alicloud_esa_cache_rule" "homepage_static" {
+  site_id     = local.site_id
+  rule_name   = "homepage-static-cache"
+  rule_enable = "on"
+  rule        = "(http.host eq \"${local.accelerate_domain}\")"
+
+  bypass_cache                = "cache_all"
+  edge_cache_mode             = "override_origin"
+  edge_cache_ttl              = "3600"
+  browser_cache_mode          = "override_origin"
+  browser_cache_ttl           = "300"
+  query_string_mode           = "reserve_all"
+  sort_query_string_for_cache = "on"
+  serve_stale                 = "on"
+
+  depends_on = [alicloud_esa_origin_rule.homepage]
+}
+
 # 注意：WAF Ruleset 已由 apple-api-esa-prod.tf 创建，此处复用
 # 如需为官网添加独立的速率限制规则，请在阿里云 ESA 控制台手动配置
 # 或在 apple-api-esa-prod.tf 中添加新的 waf_rule 资源
