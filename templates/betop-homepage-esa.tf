@@ -56,7 +56,6 @@ resource "alicloud_oss_bucket" "homepage" {
 resource "alicloud_oss_bucket_object" "index" {
   bucket        = alicloud_oss_bucket.homepage.bucket
   key           = "index.html"
-  acl           = "public-read"
   content_type  = "text/html"
   cache_control = "no-cache"
   content       = <<-HTML
