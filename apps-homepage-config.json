@@ -1,5 +1,5 @@
 {
-  "template-file-path": "templates/app-homepage-esa.tf",
+  "template-file-path": "templates/apps-homepage-esa.tf",
   "parameters": {
     "site_id": "157859014523116",
     "oss_region": "us-east-1",
