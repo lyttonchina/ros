@@ -24,7 +24,7 @@ locals {
 # ============================================================
 
 locals {
-  taim_bucket_name   = "taim-homepage"
+  taim_bucket_name   = "app-taim-homepage"
   taim_oss_endpoint  = "${local.taim_bucket_name}.oss-${local.oss_region}.aliyuncs.com"
   taim_accelerate_domain = "taim.shiningapps.top"
 }
@@ -102,7 +102,7 @@ resource "alicloud_esa_origin_rule" "taim" {
 # ============================================================
 
 locals {
-  tunneling_bucket_name   = "tunneling-homepage"
+  tunneling_bucket_name   = "app-tunneling-homepage"
   tunneling_oss_endpoint  = "${local.tunneling_bucket_name}.oss-${local.oss_region}.aliyuncs.com"
   tunneling_accelerate_domain = "tunneling.shiningapps.top"
 }
@@ -180,7 +180,7 @@ resource "alicloud_esa_origin_rule" "tunneling" {
 # ============================================================
 
 locals {
-  lockwake_bucket_name   = "lockwake-homepage"
+  lockwake_bucket_name   = "app-lockwake-homepage"
   lockwake_oss_endpoint  = "${local.lockwake_bucket_name}.oss-${local.oss_region}.aliyuncs.com"
   lockwake_accelerate_domain = "lockwake.shiningapps.top"
 }
