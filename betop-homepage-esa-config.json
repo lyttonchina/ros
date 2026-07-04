@@ -2,8 +2,8 @@
   "template-file-path": "templates/betop-homepage-esa.tf",
   "parameters": {
     "site_id": "165447474077904",
-    "accelerate_domain": "www.betop.vip",
-    "origin_domain": "www.apple-app.cn",
+    "oss_region": "cn-guangzhou",
+    "bucket_name": "betop-vip-homepage",
     "tags": {
       "env": "homepage",
       "arch": "esa"

@@ -3,7 +3,8 @@
   "parameters": {
     "site_id": "157859014523116",
     "accelerate_domain": "www.shiningapps.top",
-    "origin_domain": "www.apple-app.cn",
+    "oss_region": "cn-guangzhou",
+    "bucket_name": "shiningapps-top-homepage",
     "tags": {
       "env": "homepage",
       "arch": "esa"
