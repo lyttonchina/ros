@@ -2,6 +2,7 @@ locals {
   site_id           = 156759048689904
   record_name       = "s2s-prod"
   accelerate_domain = "s2s-prod.apple-app.cn"
+  #这个nlb要重新创建，需要把以前的替换掉
   nlb_dns_name      = "nlb-eawmxizy6mlwetlt1q.us-east-1.nlb.aliyuncsslbintl.com"
 }
 
