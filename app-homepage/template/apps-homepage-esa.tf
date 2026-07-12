@@ -20,163 +20,7 @@ locals {
 }
 
 # ============================================================
-# App 1: taim - 独立 Bucket
-# ============================================================
-
-locals {
-  taim_bucket_name   = "app-taim-homepage"
-  taim_oss_endpoint  = "${local.taim_bucket_name}.oss-${local.oss_region}.aliyuncs.com"
-  taim_accelerate_domain = "taim.shiningapps.top"
-}
-
-# 创建 taim 应用的 OSS 存储桶
-resource "alicloud_oss_bucket" "taim" {
-  bucket        = local.taim_bucket_name
-  acl           = "public-read"  # 公共读权限，允许匿名访问静态文件
-  force_destroy = false
-
-  # 网站托管配置：支持 SPA 路由
-  website {
-    index_document = "index.html"
-    error_document = "index.html"
-  }
-
-  # 版本控制（可选）
-  versioning {
-    status = "Suspended"
-  }
-
-  # 冗余类型：LRS（本地冗余存储）
-  redundancy_type = "LRS"
-
-  # 存储类型：Standard（标准存储）
-  storage_class = "Standard"
-
-  tags = merge(var.tags, { app = "taim" })
-}
-
-# DNS 加速记录：taim.shiningapps.top
-resource "alicloud_esa_record" "taim" {
-  record_name    = local.taim_accelerate_domain
-  record_type    = "CNAME"
-  site_id        = local.site_id
-  proxied        = true
-  biz_name       = "web"
-  ttl            = 600
-  source_type    = "OSS"  # 选择 OSS 源站类型，享受回源流量优惠
-
-  data {
-    value = local.taim_oss_endpoint
-  }
-
-  auth_conf {
-    auth_type = "public"
-  }
-
-  depends_on = [alicloud_oss_bucket.taim]
-}
-
-# 免费证书：taim.shiningapps.top
-resource "alicloud_esa_certificate" "taim" {
-  site_id      = local.site_id
-  created_type = "free"
-  domains      = local.taim_accelerate_domain
-}
-
-# 回源规则：taim.shiningapps.top → OSS
-resource "alicloud_esa_origin_rule" "taim" {
-  site_id          = local.site_id
-  origin_scheme    = "http"
-  origin_http_port = "80"
-  dns_record       = local.taim_accelerate_domain
-  origin_host      = local.taim_oss_endpoint
-  rule_enable      = "on"
-  rule             = "(http.host eq \"${local.taim_accelerate_domain}\")"
-  rule_name        = "taim-route"
-
-  depends_on = [alicloud_esa_record.taim]
-}
-
-# ============================================================
-# App 2: tunneling - 独立 Bucket
-# ============================================================
-
-locals {
-  tunneling_bucket_name   = "app-tunneling-homepage"
-  tunneling_oss_endpoint  = "${local.tunneling_bucket_name}.oss-${local.oss_region}.aliyuncs.com"
-  tunneling_accelerate_domain = "tunneling.shiningapps.top"
-}
-
-# 创建 tunneling 应用的 OSS 存储桶
-resource "alicloud_oss_bucket" "tunneling" {
-  bucket        = local.tunneling_bucket_name
-  acl           = "public-read"  # 公共读权限，允许匿名访问静态文件
-  force_destroy = false
-
-  # 网站托管配置：支持 SPA 路由
-  website {
-    index_document = "index.html"
-    error_document = "index.html"
-  }
-
-  # 版本控制（可选）
-  versioning {
-    status = "Suspended"
-  }
-
-  # 冗余类型：LRS（本地冗余存储）
-  redundancy_type = "LRS"
-
-  # 存储类型：Standard（标准存储）
-  storage_class = "Standard"
-
-  tags = merge(var.tags, { app = "tunneling" })
-}
-
-# DNS 加速记录：tunneling.shiningapps.top
-resource "alicloud_esa_record" "tunneling" {
-  record_name    = local.tunneling_accelerate_domain
-  record_type    = "CNAME"
-  site_id        = local.site_id
-  proxied        = true
-  biz_name       = "web"
-  ttl            = 600
-  source_type    = "OSS"  # 选择 OSS 源站类型，享受回源流量优惠
-
-  data {
-    value = local.tunneling_oss_endpoint
-  }
-
-  auth_conf {
-    auth_type = "public"
-  }
-
-  depends_on = [alicloud_oss_bucket.tunneling]
-}
-
-# 免费证书：tunneling.shiningapps.top
-resource "alicloud_esa_certificate" "tunneling" {
-  site_id      = local.site_id
-  created_type = "free"
-  domains      = local.tunneling_accelerate_domain
-}
-
-# 回源规则：tunneling.shiningapps.top → OSS
-resource "alicloud_esa_origin_rule" "tunneling" {
-  site_id          = local.site_id
-  origin_scheme    = "http"
-  origin_http_port = "80"
-  dns_record       = local.tunneling_accelerate_domain
-  origin_host      = local.tunneling_oss_endpoint
-  rule_enable      = "on"
-  rule             = "(http.host eq \"${local.tunneling_accelerate_domain}\")"
-  rule_name        = "tunneling-route"
-
-  depends_on = [alicloud_esa_record.tunneling]
-}
-
-# ============================================================
-# App 3: lockwake - 独立 Bucket
+# App: lockwake - 独立 Bucket
 # ============================================================
 
 locals {
@@ -186,11 +30,7 @@ locals {
 }
 
 locals {
-  homepage_cache_rule_hosts = join(" or ", [
-    "(http.host eq \"${local.taim_accelerate_domain}\")",
-    "(http.host eq \"${local.tunneling_accelerate_domain}\")",
-    "(http.host eq \"${local.lockwake_accelerate_domain}\")",
-  ])
+  homepage_cache_rule_hosts = "(http.host eq \"${local.lockwake_accelerate_domain}\")"
 }
 
 # 创建 lockwake 应用的 OSS 存储桶
@@ -278,8 +118,6 @@ resource "alicloud_esa_cache_rule" "homepage_static" {
   serve_stale                  = "on"
 
   depends_on = [
-    alicloud_esa_origin_rule.taim,
-    alicloud_esa_origin_rule.tunneling,
     alicloud_esa_origin_rule.lockwake,
   ]
 }
