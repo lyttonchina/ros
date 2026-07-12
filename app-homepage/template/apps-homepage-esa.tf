@@ -24,7 +24,7 @@ locals {
 # ============================================================
 
 locals {
-  lockwake_bucket_name   = "app-lockwake-homepage"
+  lockwake_bucket_name   = "lockwake-app-homepage"
   lockwake_oss_endpoint  = "${local.lockwake_bucket_name}.oss-${local.oss_region}.aliyuncs.com"
   lockwake_accelerate_domain = "lockwake.shiningapps.top"
 }
