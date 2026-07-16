@@ -215,91 +215,6 @@
         "ZoneId": "us-east-1b"
       }
     },
-    "NlbServerGroup": {
-      "Type": "ALIYUN::NLB::ServerGroup",
-      "Properties": {
-        "Protocol": "TCP",
-        "VpcId": {
-          "Ref": "VPC"
-        },
-        "ServerGroupName": {
-          "Fn::Sub": "${ALIYUN::StackName}_server_group"
-        },
-        "HealthCheckConfig": {
-          "HealthCheckEnabled": true,
-          "HealthyThreshold": 3,
-          "UnhealthyThreshold": 3,
-          "HealthCheckConnectTimeout": 5,
-          "HealthCheckInterval": 2
-        },
-        "Scheduler": "Wrr"
-      }
-    },
-    "NlbListener": {
-      "Type": "ALIYUN::NLB::Listener",
-      "Properties": {
-        "ServerGroupId": {
-          "Ref": "NlbServerGroup"
-        },
-        "ListenerProtocol": "TCP",
-        "ListenerPort": 8080,
-        "LoadBalancerId": {
-          "Ref": "NlbInstance"
-        }
-      },
-      "DependsOn": ["NlbInstance"]
-    },
-    "NlbInstance": {
-      "Type": "ALIYUN::NLB::LoadBalancer",
-      "Properties": {
-        "LoadBalancerName": {
-          "Fn::Sub": "${ALIYUN::StackName}_nlb"
-        },
-        "VpcId": {
-          "Ref": "VPC"
-        },
-        "ZoneMappings": [
-          {
-            "VSwitchId": {
-              "Ref": "VSwitch"
-            },
-            "ZoneId": "us-east-1a"
-          },
-          {
-            "VSwitchId": {
-              "Ref": "VSwitchB"
-            },
-            "ZoneId": "us-east-1b"
-          }
-        ],
-        "LoadBalancerBillingConfig": {
-          "PayType": "PostPay"
-        },
-        "AddressType": "Internet"
-      }
-    },
-    "SaeNlbBinding": {
-      "Type": "ALIYUN::SAE::NlbBinding",
-      "Properties": {
-        "AppId": {
-          "Ref": "SaeApplication"
-        },
-        "NlbId": {
-          "Ref": "NlbInstance"
-        },
-        "Listeners": [
-          {
-            "Port": 8080,
-            "TargetPort": 8080,
-            "Protocol": "TCP"
-          }
-        ]
-      },
-      "DependsOn": [
-        "NlbListener",
-        "NlbServerGroup"
-      ]
-    },
     "ScalingRule": {
       "Type": "ALIYUN::SAE::ApplicationScalingRule",
       "Properties": {
@@ -334,11 +249,11 @@
         "MinReadyInstances": 0
       },
       "DependsOn": [
-        "SaeNlbBinding"
+        "SaeApplication"
       ]
     }
   },
-  "Description": "Pure SAE deployment by ROS",
+  "Description": "Pure SAE deployment by ROS (no NAT, no NLB)",
   "Parameters": {
     "PackageUrl": {
       "Default": "https://apple-application-bj.oss-cn-beijing.aliyuncs.com/releases/yudao-server.jar",
@@ -386,30 +301,6 @@
       "Description": "VPC ID",
       "Value": {
         "Ref": "VPC"
-      }
-    },
-    "NlbDNSName": {
-      "Description": "NLB DNS name (use this as the DNS target)",
-      "Value": {
-        "Fn::GetAtt": [
-          "NlbInstance",
-          "DNSName"
-        ]
-      }
-    },
-    "NlbId": {
-      "Description": "NLB instance ID",
-      "Value": {
-        "Ref": "NlbInstance"
-      }
-    },
-    "SaeNlbBindingId": {
-      "Description": "SAE NLB Binding ID",
-      "Value": {
-        "Fn::GetAtt": [
-          "SaeNlbBinding",
-          "NlbId"
-        ]
       }
     }
   }
