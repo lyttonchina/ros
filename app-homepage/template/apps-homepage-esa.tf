@@ -29,8 +29,21 @@ locals {
   lockwake_accelerate_domain = "lockwake.shiningapps.top"
 }
 
+# ============================================================
+# App: taim - 独立 Bucket
+# ============================================================
+
 locals {
-  homepage_cache_rule_hosts = "(http.host eq \"${local.lockwake_accelerate_domain}\")"
+  taim_bucket_name   = "taim-app-homepage"
+  taim_oss_endpoint  = "${local.taim_bucket_name}.oss-${local.oss_region}.aliyuncs.com"
+  taim_accelerate_domain = "taim.shiningapps.top"
+}
+
+locals {
+  homepage_cache_rule_hosts = join(" or ", [
+    "(http.host eq \"${local.lockwake_accelerate_domain}\")",
+    "(http.host eq \"${local.taim_accelerate_domain}\")",
+  ])
 }
 
 # 创建 lockwake 应用的 OSS 存储桶
@@ -59,7 +72,33 @@ resource "alicloud_oss_bucket" "lockwake" {
   tags = merge(var.tags, { app = "lockwake" })
 }
 
-# DNS 加速记录：lockwake.shiningapps.top
+# 创建 taim 应用的 OSS 存储桶
+resource "alicloud_oss_bucket" "taim" {
+  bucket        = local.taim_bucket_name
+  acl           = "public-read"  # 公共读权限，允许匿名访问静态文件
+  force_destroy = false
+
+  # 网站托管配置：支持 SPA 路由
+  website {
+    index_document = "index.html"
+    error_document = "index.html"
+  }
+
+  # 版本控制（可选）
+  versioning {
+    status = "Suspended"
+  }
+
+  # 冗余类型：LRS（本地冗余存储）
+  redundancy_type = "LRS"
+
+  # 存储类型：Standard（标准存储）
+  storage_class = "Standard"
+
+  tags = merge(var.tags, { app = "taim" })
+}
+
+# DNS 加速记录：taim.shiningapps.top
 resource "alicloud_esa_record" "lockwake" {
   record_name    = local.lockwake_accelerate_domain
   record_type    = "CNAME"
@@ -87,6 +126,34 @@ resource "alicloud_esa_certificate" "lockwake" {
   domains      = local.lockwake_accelerate_domain
 }
 
+# DNS 加速记录：taim.shiningapps.top
+resource "alicloud_esa_record" "taim" {
+  record_name    = local.taim_accelerate_domain
+  record_type    = "CNAME"
+  site_id        = local.site_id
+  proxied        = true
+  biz_name       = "web"
+  ttl            = 600
+  source_type    = "OSS"  # 选择 OSS 源站类型，享受回源流量优惠
+
+  data {
+    value = local.taim_oss_endpoint
+  }
+
+  auth_conf {
+    auth_type = "public"
+  }
+
+  depends_on = [alicloud_oss_bucket.taim]
+}
+
+# 免费证书：taim.shiningapps.top
+resource "alicloud_esa_certificate" "taim" {
+  site_id      = local.site_id
+  created_type = "free"
+  domains      = local.taim_accelerate_domain
+}
+
 # 回源规则：lockwake.shiningapps.top → OSS
 resource "alicloud_esa_origin_rule" "lockwake" {
   site_id          = local.site_id
@@ -99,6 +166,20 @@ resource "alicloud_esa_origin_rule" "lockwake" {
   rule_name        = "lockwake-route"
 
   depends_on = [alicloud_esa_record.lockwake]
+}
+
+# 回源规则：taim.shiningapps.top → OSS
+resource "alicloud_esa_origin_rule" "taim" {
+  site_id          = local.site_id
+  origin_scheme    = "http"
+  origin_http_port = "80"
+  dns_record       = local.taim_accelerate_domain
+  origin_host      = local.taim_oss_endpoint
+  rule_enable      = "on"
+  rule             = "(http.host eq \"${local.taim_accelerate_domain}\")"
+  rule_name        = "taim-route"
+
+  depends_on = [alicloud_esa_record.taim]
 }
 
 # 静态主页缓存：避免 HTML 被 ESA 判为 DYNAMIC 后每次跨区回源 OSS。
@@ -119,6 +200,7 @@ resource "alicloud_esa_cache_rule" "homepage_static" {
 
   depends_on = [
     alicloud_esa_origin_rule.lockwake,
+    alicloud_esa_origin_rule.taim,
   ]
 }
 
