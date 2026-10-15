@@ -30,7 +30,7 @@ locals {
 # 与 app-homepage（公共主页模板）共用同一 site_id（157859014523116），
 # 但本模板不并入 homepage_static cache rule：Apple OAuth2 路径的
 # `code` / `state` / `id_token` 必须禁止边缘缓存，故
-# bypass_cache = "disable"（每次都回源 OSS） + 浏览器不缓存。
+# bypass_cache = "bypass_all"（每次都回源 OSS） + 浏览器不缓存。
 #
 # 桶名固定 taim-apple-oauth2-spa：与加速域 taim-apple-sign.shiningapps.top
 # 同属 Apple 身份场景；Google / GitHub 等其他 provider 将使用独立桶
@@ -112,7 +112,7 @@ resource "alicloud_esa_origin_rule" "taim_oauth2_spa" {
 }
 
 # 严格全 bypass 缓存规则：
-# - bypass_cache = "disable" → ESA 边缘节点不缓存任何内容，
+# - bypass_cache = "bypass_all" → ESA 边缘节点不缓存任何内容，
 #   防止 IdP 一次性 `code` / `state` / `id_token` 被边缘存下来。
 # - browser_cache_ttl = 0 → 浏览器也不缓存，避免 `/callback?code=…`
 #   命中历史响应。
@@ -126,7 +126,7 @@ resource "alicloud_esa_cache_rule" "taim_oauth2_spa_bypass" {
   rule_enable = "on"
   rule        = local.oauth2_spa_cache_rule_hosts
 
-  bypass_cache        = "disable"
+  bypass_cache        = "bypass_all"
   browser_cache_mode  = "override_origin"
   browser_cache_ttl   = "0"
   serve_stale         = "off"
