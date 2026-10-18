@@ -1,7 +1,7 @@
 {
   "template-file-path": "template.tf",
   "parameters": {
-    "site_id": "156759048689904",
+    "site_id": "165447474077904",
     "accelerate_domain": "admin.betop.vip",
     "record_name": "admin",
     "bucket_name": "web-admin-esa-prod",
