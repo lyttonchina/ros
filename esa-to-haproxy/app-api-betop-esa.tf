@@ -21,7 +21,7 @@ locals {
 # DNS 加速记录：app-api.betop.vip 走 ESA 代理加速
 resource "alicloud_esa_record" "app_api" {
   record_name = local.accelerate_domain
-  record_type = "CNAME"
+  record_type = "A/AAAA"
   site_id     = local.site_id
   proxied     = true
   biz_name    = "api"
