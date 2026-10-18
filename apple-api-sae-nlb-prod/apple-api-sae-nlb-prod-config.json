@@ -1,5 +1,5 @@
 {
-  "template-file-path": "templates/apple-api-sae-nlb-prod.json",
+  "template-file-path": "apple-api-sae-nlb-prod.json",
   "parameters": {
     "PackageUrl": "https://apple-application-bj.oss-cn-beijing.aliyuncs.com/releases/yudao-server.jar",
     "AppName": "apple-api-prod",

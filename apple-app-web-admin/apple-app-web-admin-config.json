@@ -1,5 +1,5 @@
 {
-  "template-file-path": "templates/apple-app-web-admin.json",
+  "template-file-path": "apple-app-web-admin.json",
   "parameters": {
     "BucketName": "web-admin-prod-gz",
     "CdnDomainName": "admin.apple-app.cn",

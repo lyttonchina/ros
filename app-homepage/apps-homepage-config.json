@@ -1,10 +1,10 @@
 {
-  "template-file-path": "templates/taim-oauth2-spa-esa.tf",
+  "template-file-path": "apps-homepage-esa.tf",
   "parameters": {
     "site_id": "157859014523116",
     "oss_region": "us-east-1",
     "tags": {
-      "env": "oauth2-spa",
+      "env": "homepage",
       "arch": "esa"
     }
   }

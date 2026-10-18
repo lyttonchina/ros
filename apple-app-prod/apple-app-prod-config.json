@@ -1,5 +1,5 @@
 {
-  "template-file-path": "templates/apple-app-prod.json",
+  "template-file-path": "apple-app-prod.json",
   "parameters": {
     "PackageUrl": "https://apple-application-bj.oss-cn-beijing.aliyuncs.com/releases/yudao-server.jar",
     "CertificateId": "24280745",

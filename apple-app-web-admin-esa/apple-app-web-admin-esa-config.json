@@ -1,5 +1,5 @@
 {
-    "template-file-path": "templates/apple-app-web-admin-esa.tf",
+    "template-file-path": "apple-app-web-admin-esa.tf",
     "parameters": {
         "site_id": "156759048689904",
         "accelerate_domain": "admin.apple-app.cn",
