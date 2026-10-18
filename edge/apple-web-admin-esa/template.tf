@@ -1,7 +1,7 @@
 locals {
   site_id           = 156759048689904
   record_name       = "admin"
-  accelerate_domain = "admin.apple-app.cn"
+  accelerate_domain = "admin.betop.vip"
   bucket_name       = "web-admin-esa-prod-gz"
   oss_region        = "cn-guangzhou"  # 广州区域（与 Bucket 实际位置一致）
   oss_endpoint      = "${local.bucket_name}.oss-${local.oss_region}.aliyuncs.com"
@@ -66,15 +66,15 @@ resource "alicloud_esa_record" "web_admin" {
   depends_on = [alicloud_oss_bucket.web_admin]
 }
 
-# 免费证书：为 admin.apple-app.cn 申请单域名边缘证书
+# 免费证书：为 admin.betop.vip 申请单域名边缘证书
 resource "alicloud_esa_certificate" "web_admin" {
   site_id      = local.site_id
   created_type = "free"
-  domains      = "admin.apple-app.cn"
+  domains      = "admin.betop.vip"
 }
 
 # 回源协议和端口：配置回源协议 HTTP 和端口 80（OSS 默认端口）
-# 使用精确匹配条件，只匹配 admin.apple-app.cn 域名，避免与其他域名的路由冲突
+# 使用精确匹配条件，只匹配 admin.betop.vip 域名，避免与其他域名的路由冲突
 # 使用标准 OSS Endpoint，Bucket 已启用静态网站托管，会自动返回 HTML 内容
 resource "alicloud_esa_origin_rule" "web_admin" {
   site_id          = local.site_id
