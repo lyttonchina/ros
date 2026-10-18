@@ -4,8 +4,8 @@
     "site_id": "156759048689904",
     "accelerate_domain": "admin.betop.vip",
     "record_name": "admin",
-    "bucket_name": "web-admin-esa-prod-gz",
-    "oss_region": "cn-guangzhou",
+    "bucket_name": "web-admin-esa-prod",
+    "oss_region": "cn-chengdu",
     "tags": {
       "env": "web-admin-esa",
       "arch": "esa"

@@ -2,8 +2,8 @@ locals {
   site_id           = 156759048689904
   record_name       = "admin"
   accelerate_domain = "admin.betop.vip"
-  bucket_name       = "web-admin-esa-prod-gz"
-  oss_region        = "cn-guangzhou"  # 广州区域（与 Bucket 实际位置一致）
+  bucket_name       = "web-admin-esa-prod"
+  oss_region        = "cn-chengdu"  # 成都区域（Bucket 实际位置）
   oss_endpoint      = "${local.bucket_name}.oss-${local.oss_region}.aliyuncs.com"
   # 静态网站托管：启用 website 配置后，使用标准 Endpoint 即可自动返回 HTML
   # 不需要特殊的 oss-website 域名，标准 Endpoint 已支持静态网站托管
