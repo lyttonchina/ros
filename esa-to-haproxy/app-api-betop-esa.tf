@@ -14,8 +14,7 @@ locals {
   origin_port       = "8080"
   # 与 taim-doc/鉴权和用户数据加密/haproxy配置/haproxy.cfg frontend esa-in 校验的 header 对齐。
   # header 名称属链路协议契约，不走参数化；改它必须同步改 haproxy.cfg。
-  esa_token_header  = "x-esa-token"
-  esa_token_value   = var.esa_token_value
+  esa_token_header = "x-esa-token"
 }
 
 # DNS 加速记录：app-api.betop.vip 走 ESA 代理加速
@@ -47,11 +46,21 @@ resource "alicloud_esa_origin_rule" "app_api" {
   rule_enable      = "on"
   rule             = "(http.host eq \"${local.accelerate_domain}\")"
   rule_name        = "app-api-betop-route"
+}
 
-  # TODO(esa-to-haproxy): haproxy frontend esa-in 强制要求 x-esa-token 必须存在且匹配，
-  # 否则直接 deny。需要在 ESA 端给回源请求注入该 header（value = <YOUR_ESA_TOKEN>）。
-  # 阿里云 ESA provider 是否有 alicloud_esa_header_rule / transform_rule 之类的资源、
-  # 或者只能在 ESA 控制台手工配 Modify Origin Request Headers，需在 apply 前确认。
+# 出站请求头修改：ESA 回源时注入 x-esa-token，haproxy frontend esa-in 校验该头
+resource "alicloud_esa_http_request_header_modification_rule" "app_api_esa_token" {
+  site_id     = local.site_id
+  rule_name   = "app-api-betop-add-esa-token"
+  rule_enable = "on"
+  rule        = "(http.host eq \"${local.accelerate_domain}\")"
+
+  request_header_modification {
+    operation = "add"
+    name      = local.esa_token_header
+    value     = var.esa_token_value
+    type      = "static"
+  }
 }
 
 # 免费证书：为 app-api.betop.vip 申请单域名边缘证书
