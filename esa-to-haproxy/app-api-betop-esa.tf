@@ -1,3 +1,10 @@
+variable "esa_token_value" {
+  description = "Shared secret injected by ESA on every back-to-origin request and verified by haproxy frontend esa-in. Source of truth is the deploy-time secret store (tfvars / TF_VAR_esa_token_value / env). Repo only carries the placeholder."
+  type        = string
+  sensitive   = true
+  default     = "<YOUR_ESA_TOKEN>"
+}
+
 locals {
   site_id           = 165447474077904
   record_name       = "app-api"
@@ -5,9 +12,10 @@ locals {
   # ESA → haproxy 直连（无 NLB），公网入口 IP 在 haproxy 宿主机上
   origin_ip         = "43.112.127.244"
   origin_port       = "8080"
-  # 与 taim-doc/鉴权和用户数据加密/haproxy配置/haproxy.cfg frontend esa-in 校验的 header 对齐
+  # 与 taim-doc/鉴权和用户数据加密/haproxy配置/haproxy.cfg frontend esa-in 校验的 header 对齐。
+  # header 名称属链路协议契约，不走参数化；改它必须同步改 haproxy.cfg。
   esa_token_header  = "x-esa-token"
-  esa_token_value   = "<YOUR_ESA_TOKEN>"
+  esa_token_value   = var.esa_token_value
 }
 
 # DNS 加速记录：app-api.betop.vip 走 ESA 代理加速
