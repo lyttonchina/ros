@@ -1,16 +1,14 @@
 {
-  "template-file-path": "apple-app-prod.json",
+  "template-file-path": "template.json",
   "parameters": {
     "PackageUrl": "https://apple-application-bj.oss-cn-beijing.aliyuncs.com/releases/yudao-server.jar",
-    "CertificateId": "24280745",
     "AppName": "apple-api-prod",
     "HealthCheckPath": "/api/health",
     "HealthCheckInitialDelay": 300,
-    "NamespaceId": "us-east-1",
-    "DomainPrefix": "api-prod",
-    "RootDomain": "apple-app.cn"
+    "NamespaceId": "apple-api-prod"
   },
   "tags": {
-    "env": "prod"
+    "env": "prod",
+    "arch": "sae"
   }
 }

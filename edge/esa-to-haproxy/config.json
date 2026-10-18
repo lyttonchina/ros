@@ -1,5 +1,5 @@
 {
-  "template-file-path": "app-api-betop-esa.tf",
+  "template-file-path": "template.tf",
   "parameters": {
     "site_id": "165447474077904",
     "accelerate_domain": "app-api.betop.vip",

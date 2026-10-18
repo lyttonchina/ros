@@ -1,0 +1,7 @@
+{
+  "template-file-path": "template.json",
+  "parameters": {},
+  "tags": {
+    "env": "shared"
+  }
+}

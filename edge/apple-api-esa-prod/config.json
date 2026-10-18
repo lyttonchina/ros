@@ -1,5 +1,5 @@
 {
-  "template-file-path": "apple-api-esa-prod.tf",
+  "template-file-path": "template.tf",
   "parameters": {
     "site_id": "156759048689904",
     "accelerate_domain": "apple-api-esa-prod.apple-app.cn",

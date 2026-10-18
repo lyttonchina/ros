@@ -1,8 +1,0 @@
-{
-  "template-file-path": "apple-app-db.json",
-  "parameters": {
-  },
-  "tags": {
-    "env": "shared"
-  }
-}

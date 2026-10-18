@@ -1,5 +1,5 @@
 {
-  "template-file-path": "apple-api-s2s-prod.tf",
+  "template-file-path": "template.tf",
   "parameters": {
     "site_id": "156759048689904",
     "accelerate_domain": "s2s-prod.apple-app.cn",
