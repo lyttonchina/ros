@@ -32,7 +32,7 @@ locals {
 # `code` / `state` / `id_token` 必须禁止边缘缓存，故
 # bypass_cache = "bypass_all"（每次都回源 OSS） + 浏览器不缓存。
 #
-# 桶名固定 taim-apple-oauth2-spa：与加速域 taim-apple-sign.shiningapps.top
+# 桶名固定 taim-apple-oauth2-spa：与加速域 taim-apple-sign.betop.vip
 # 同属 Apple 身份场景；Google / GitHub 等其他 provider 将使用独立桶
 # 与独立 host（本模板不为其预留位置）。
 # ============================================================
@@ -40,7 +40,7 @@ locals {
 locals {
   taim_oauth2_spa_bucket_name       = "taim-apple-oauth2-spa"
   taim_oauth2_spa_oss_endpoint      = "${local.taim_oauth2_spa_bucket_name}.oss-${local.oss_region}.aliyuncs.com"
-  taim_oauth2_spa_accelerate_domain = "taim-apple-sign.shiningapps.top"
+  taim_oauth2_spa_accelerate_domain = "taim-apple-sign.betop.vip"
 
   # host 列表仅包含当前 Apple OAuth2 域名；未来加入 Google / GitHub 时
   # 应当各自走独立 host 与独立 cache rule，不应把本 host 列表扩大。
@@ -69,7 +69,7 @@ resource "alicloud_oss_bucket" "taim_oauth2_spa" {
   tags = merge(var.tags, { app = "taim", role = "oauth2-spa" })
 }
 
-# DNS 加速记录：taim-apple-sign.shiningapps.top
+# DNS 加速记录：taim-apple-sign.betop.vip
 resource "alicloud_esa_record" "taim_oauth2_spa" {
   record_name = local.taim_oauth2_spa_accelerate_domain
   record_type = "CNAME"
@@ -90,14 +90,14 @@ resource "alicloud_esa_record" "taim_oauth2_spa" {
   depends_on = [alicloud_oss_bucket.taim_oauth2_spa]
 }
 
-# 免费证书：taim-apple-sign.shiningapps.top
+# 免费证书：taim-apple-sign.betop.vip
 resource "alicloud_esa_certificate" "taim_oauth2_spa" {
   site_id      = local.site_id
   created_type = "free"
   domains      = local.taim_oauth2_spa_accelerate_domain
 }
 
-# 回源规则：taim-apple-sign.shiningapps.top → OSS
+# 回源规则：taim-apple-sign.betop.vip → OSS
 resource "alicloud_esa_origin_rule" "taim_oauth2_spa" {
   site_id          = local.site_id
   origin_scheme    = "http"
